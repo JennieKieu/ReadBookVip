@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "201726267954",
+    "firebase_url": "https://readbookbasic-default-rtdb.firebaseio.com",
+    "project_id": "readbookbasic",
+    "storage_bucket": "readbookbasic.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201726267954:android:a419dd5f5d7524e7af622b",
+        "android_client_info": {
+          "package_name": "com.example.book"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNLKVRWxZijYYESBrh9gEsXq_1NOKWGiQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

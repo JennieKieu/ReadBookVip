@@ -1,0 +1,209 @@
+{
+  "book": [
+    null,
+    {
+      "banner": "https://i.ibb.co/ngTRW53/baner-1.jpg",
+      "categoryId": 1,
+      "categoryName": "History",
+      "favorite": {
+        "1743181721306": {
+          "currentPage": 0,
+          "emailUser": "test@gmail.com",
+          "id": 1743181721306
+        }
+      },
+      "featured": true,
+      "id": 1,
+      "image": "https://i.ibb.co/DrW4fDZ/book-1.jpg",
+      "title": "Abaddon",
+      "url": "https://css4.pub/2015/usenix/example.pdf"
+    },
+    {
+      "banner": "https://i.ibb.co/Br0ZWhg/baner-2.jpg",
+      "categoryId": 1,
+      "categoryName": "History",
+      "favorite": {
+        "1743181723015": {
+          "currentPage": 0,
+          "emailUser": "test@gmail.com",
+          "id": 1743181723015
+        }
+      },
+      "featured": true,
+      "id": 2,
+      "image": "https://i.ibb.co/njk59kq/book-2.jpg",
+      "title": "Adventures",
+      "url": "https://css4.pub/2015/textbook/somatosensory.pdf"
+    },
+    {
+      "banner": "https://i.ibb.co/r3yGdPY/baner-3.jpg",
+      "categoryId": 1,
+      "categoryName": "History",
+      "favorite": {
+        "1743181720558": {
+          "currentPage": 0,
+          "emailUser": "test@gmail.com",
+          "id": 1743181720558
+        }
+      },
+      "featured": true,
+      "history": {
+        "1743221316209": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743221316209
+        }
+      },
+      "id": 3,
+      "image": "https://i.ibb.co/ZLF7y9d/book-3.jpg",
+      "title": "Exterminatorul",
+      "url": "https://css4.pub/2017/newsletter/drylab.pdf"
+    },
+    {
+      "categoryId": 1,
+      "categoryName": "History",
+      "favorite": {
+        "1743181708747": {
+          "currentPage": 0,
+          "emailUser": "test@gmail.com",
+          "id": 1743181708747
+        }
+      },
+      "history": {
+        "1743181627833": {
+          "currentPage": 1,
+          "emailUser": "test@gmail.com",
+          "id": 1743181627833
+        },
+        "1743221568113": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743221568113
+        }
+      },
+      "id": 4,
+      "image": "https://i.ibb.co/qg9N0Vf/book-4.jpg",
+      "title": "Mimetype",
+      "url": "https://css4.pub/2015/usenix/example.pdf"
+    },
+    {
+      "categoryId": 2,
+      "categoryName": "Mystery",
+      "favorite": {
+        "1743221325702": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743221325702
+        }
+      },
+      "history": {
+        "1743177231340": {
+          "currentPage": 1,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743177231340
+        },
+        "1743177358579": {
+          "currentPage": 1,
+          "emailUser": "test@gmail.com",
+          "id": 1743177358579
+        }
+      },
+      "id": 5,
+      "image": "https://i.ibb.co/qRd112F/book-5.jpg",
+      "title": "PhysicsSyllabus",
+      "url": "https://css4.pub/2015/textbook/somatosensory.pdf"
+    },
+    {
+      "categoryId": 3,
+      "categoryName": "Fantasy",
+      "favorite": {
+        "1743207558286": {
+          "currentPage": 0,
+          "emailUser": "test@gmail.com",
+          "id": 1743207558286
+        },
+        "1743221324614": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743221324614
+        }
+      },
+      "history": {
+        "1743176553921": {
+          "currentPage": 1,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743176553921
+        }
+      },
+      "id": 6,
+      "image": "https://i.ibb.co/d7Z62gW/book-6.jpg",
+      "title": "Sketchdraw",
+      "url": "https://css4.pub/2017/newsletter/drylab.pdf"
+    },
+    {
+      "categoryId": 4,
+      "categoryName": "Horror",
+      "favorite": {
+        "1743221311359": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743221311359
+        }
+      },
+      "history": {
+        "1743121850101": {
+          "currentPage": 0,
+          "emailUser": "mixproduction29932@gmail.com",
+          "id": 1743121850101
+        }
+      },
+      "id": 7,
+      "image": "https://i.ibb.co/SyqM40L/book-7.jpg",
+      "title": "TheSilverChair",
+      "url": "https://css4.pub/2015/usenix/example.pdf"
+    }
+  ],
+  "category": [
+    null,
+    {
+      "id": 1,
+      "image": "https://i.ibb.co/r5fkBMM/category-1.jpg",
+      "name": "History"
+    },
+    {
+      "id": 2,
+      "image": "https://i.ibb.co/9yKq3Rw/category-2.jpg",
+      "name": "Mystery"
+    },
+    {
+      "id": 3,
+      "image": "https://i.ibb.co/2KH6jPS/category-3.jpg",
+      "name": "Fantasy"
+    },
+    {
+      "id": 4,
+      "image": "https://i.ibb.co/WgSVzV4/category-4.jpg",
+      "name": "Horror"
+    }
+  ],
+  "feedback": {
+    "1729091003074": {
+      "comment": "App cần thêm tính năng user",
+      "email": "test@gmail.com",
+      "name": "Nguyen Van Anh",
+      "phone": "0986868686"
+    },
+    "1743182083089": {
+      "comment": "App hoat dong rat tot !!!!",
+      "email": "test@gmail.com",
+      "name": "Tincoder",
+      "phone": "+84365986598"
+    },
+    "1743182484954": {
+      "comment": "App can phat trien them tinh nang moi !!!",
+      "email": "mixproduction29932@gmail.com",
+      "name": "Test",
+      "phone": "0986598659"
+    }
+  }
+}
