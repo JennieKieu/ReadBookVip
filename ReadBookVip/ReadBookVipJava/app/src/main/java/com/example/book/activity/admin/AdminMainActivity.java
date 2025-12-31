@@ -25,7 +25,7 @@ public class AdminMainActivity extends BaseActivity {
         setToolBar();
 
         mBinding.viewpager2.setUserInputEnabled(false);
-        mBinding.viewpager2.setOffscreenPageLimit(4);
+        mBinding.viewpager2.setOffscreenPageLimit(5);
         AdminViewPagerAdapter adminViewPagerAdapter = new AdminViewPagerAdapter(this);
         mBinding.viewpager2.setAdapter(adminViewPagerAdapter);
 
@@ -47,6 +47,10 @@ public class AdminMainActivity extends BaseActivity {
                         break;
 
                     case 3:
+                        mBinding.bottomNavigation.getMenu().findItem(R.id.nav_advertisement).setChecked(true);
+                        break;
+
+                    case 4:
                         mBinding.bottomNavigation.getMenu().findItem(R.id.nav_account).setChecked(true);
                         break;
                 }
@@ -61,8 +65,10 @@ public class AdminMainActivity extends BaseActivity {
                 mBinding.viewpager2.setCurrentItem(1);
             }  else if (id == R.id.nav_feedback) {
                 mBinding.viewpager2.setCurrentItem(2);
-            } else if (id == R.id.nav_account) {
+            } else if (id == R.id.nav_advertisement) {
                 mBinding.viewpager2.setCurrentItem(3);
+            } else if (id == R.id.nav_account) {
+                mBinding.viewpager2.setCurrentItem(4);
             }
             return true;
         });

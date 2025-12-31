@@ -7,11 +7,14 @@ import com.example.book.prefs.DataStoreManager;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 public class MyApplication extends Application {
 
     public static final String FIREBASE_URL = "https://readbookbasic-default-rtdb.firebaseio.com";
     private FirebaseDatabase mFirebaseDatabase;
+    private FirebaseStorage mFirebaseStorage;
 
     public static MyApplication get(Context context) {
         return (MyApplication) context.getApplicationContext();
@@ -22,6 +25,7 @@ public class MyApplication extends Application {
         super.onCreate();
         FirebaseApp.initializeApp(this);
         mFirebaseDatabase = FirebaseDatabase.getInstance(FIREBASE_URL);
+        mFirebaseStorage = FirebaseStorage.getInstance();
         DataStoreManager.init(getApplicationContext());
     }
 
@@ -35,5 +39,17 @@ public class MyApplication extends Application {
 
     public DatabaseReference feedbackDatabaseReference() {
         return mFirebaseDatabase.getReference("/feedback");
+    }
+
+    public DatabaseReference advertisementDatabaseReference() {
+        return mFirebaseDatabase.getReference("/advertisement");
+    }
+
+    public DatabaseReference advertisementViewDatabaseReference() {
+        return mFirebaseDatabase.getReference("/advertisementViews");
+    }
+
+    public StorageReference getAdvertisementStorageReference() {
+        return mFirebaseStorage.getReference("advertisements");
     }
 }

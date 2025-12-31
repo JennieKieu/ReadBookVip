@@ -10,6 +10,7 @@ import com.example.book.databinding.ActivityBookDetailBinding;
 import com.example.book.model.Book;
 import com.example.book.model.UserInfo;
 import com.example.book.prefs.DataStoreManager;
+import com.example.book.utils.AdvertisementHelper;
 import com.example.book.utils.AsyncTaskExecutor;
 import com.example.book.utils.StringUtil;
 import com.github.pdfviewer.util.FitPolicy;
@@ -26,6 +27,8 @@ public class BookDetailActivity extends BaseActivity {
     private ActivityBookDetailBinding mBinding;
     private Book mBook;
     private UserInfo mUserInfo;
+    private int pagesReadSinceLastAd = 0;
+    private int lastAdPage = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +79,10 @@ public class BookDetailActivity extends BaseActivity {
                     GlobalFunction.showToastMessage(BookDetailActivity.this,
                             getString(R.string.msg_file_error));
                 })
-                .onPageChange((page, pageCount) -> saveCurrentPageHistory(page))
+                .onPageChange((page, pageCount) -> {
+                    saveCurrentPageHistory(page);
+                    checkAndShowAdvertisement(page);
+                })
                 .load();
     }
 
@@ -88,6 +94,39 @@ public class BookDetailActivity extends BaseActivity {
                 .child("history")
                 .child(String.valueOf(mUserInfo.getId()))
                 .setValue(mUserInfo);
+    }
+
+    private void checkAndShowAdvertisement(int currentPage) {
+        // Đếm số trang đã đọc (tránh đếm lại khi quay lại)
+        if (currentPage > lastAdPage) {
+            pagesReadSinceLastAd += (currentPage - lastAdPage);
+            lastAdPage = currentPage;
+        }
+
+        // Hiển thị quảng cáo sau mỗi 10 trang
+        if (pagesReadSinceLastAd >= Constant.PAGES_PER_AD) {
+            showAdvertisement();
+            pagesReadSinceLastAd = 0;
+        }
+    }
+
+    private void showAdvertisement() {
+        AdvertisementHelper.loadActiveAdvertisement(this, new AdvertisementHelper.OnAdvertisementLoadedListener() {
+            @Override
+            public void onAdvertisementLoaded(com.example.book.model.Advertisement advertisement) {
+                AdvertisementHelper.showAdvertisement(BookDetailActivity.this, advertisement);
+            }
+
+            @Override
+            public void onNoAdvertisement() {
+                // Không có quảng cáo active, không làm gì
+            }
+
+            @Override
+            public void onError(String error) {
+                // Lỗi khi load quảng cáo, không làm gì để không ảnh hưởng đến trải nghiệm đọc sách
+            }
+        });
     }
 
     private void addHistory() {

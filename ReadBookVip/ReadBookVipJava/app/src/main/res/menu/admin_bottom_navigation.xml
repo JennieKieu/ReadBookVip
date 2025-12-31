@@ -17,6 +17,11 @@
         android:title="@string/menu_feedback" />
 
     <item
+        android:id="@+id/nav_advertisement"
+        android:icon="@drawable/ic_menu_book"
+        android:title="@string/menu_advertisement" />
+
+    <item
         android:id="@+id/nav_account"
         android:icon="@drawable/ic_menu_account"
         android:title="@string/menu_account" />

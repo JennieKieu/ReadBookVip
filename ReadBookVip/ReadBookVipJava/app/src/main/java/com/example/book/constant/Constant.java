@@ -11,4 +11,7 @@ public class Constant {
     public static final int MAX_SIZE_LIST_NEW_BOOKS = 6;
 
     public static final String ADMIN_EMAIL_FORMAT = "@admin.com";
+
+    public static final String OBJECT_ADVERTISEMENT = "object_advertisement";
+    public static final int PAGES_PER_AD = 10;  // Số trang trước khi hiển thị quảng cáo
 }

@@ -15,6 +15,8 @@ circleindicator = "2.1.6"
 dialogs = "0.9.6.0"
 gson = "2.10.1"
 pdfViewer = "6.1"
+firebaseStorage = "20.3.0"
+exoplayer = "2.19.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -33,6 +35,8 @@ circleimageview = { group = "de.hdodenhof", name = "circleimageview", version.re
 circleindicator = { group = "me.relex", name = "circleindicator", version.ref = "circleindicator" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 pdf-viewer = { group = "com.github.Foysalofficial", name = "pdf-viewer-android", version.ref = "pdfViewer" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
+exoplayer = { group = "com.google.android.exoplayer", name = "exoplayer", version.ref = "exoplayer" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -91,6 +91,7 @@
     <string name="menu_category">Category</string>
     <string name="menu_book">Book</string>
     <string name="menu_feedback">Feedback</string>
+    <string name="menu_advertisement">Advertisement</string>
     <string name="menu_account">Account</string>
 
     <string name="hint_search_name">Name…</string>
@@ -119,4 +120,31 @@
     <string name="msg_edit_book_success">Update book successfully</string>
     <string name="msg_add_book_success">Add book successfully</string>
     <string name="msg_delete_book_successfully">Delete book successfully</string>
+
+    // Advertisement
+    <string name="label_advertisement">Advertisement</string>
+    <string name="label_add_advertisement">Add advertisement</string>
+    <string name="label_edit_advertisement">Update advertisement</string>
+    <string name="label_ad_title">Title(*)</string>
+    <string name="label_ad_video">Video(*)</string>
+    <string name="label_ad_thumbnail">Thumbnail</string>
+    <string name="label_ad_active">Active</string>
+    <string name="label_ad_inactive">Inactive</string>
+    <string name="label_ad_stats">Statistics</string>
+    <string name="label_ad_list">List</string>
+    <string name="label_ad_total_views">Total views</string>
+    <string name="label_ad_top_advertisement">Top advertisement</string>
+    <string name="label_ad_views_today">Views today</string>
+    <string name="label_ad_views_this_week">Views this week</string>
+    <string name="label_ad_views_this_month">Views this month</string>
+    <string name="label_ad_completion_rate">Completion rate</string>
+    <string name="label_ad_skip_rate">Skip rate</string>
+    <string name="label_ad_view_count">Views</string>
+    <string name="msg_ad_upload_success">Upload advertisement successfully</string>
+    <string name="msg_ad_delete_success">Delete advertisement successfully</string>
+    <string name="msg_ad_edit_success">Update advertisement successfully</string>
+    <string name="msg_ad_video_require">Please select video</string>
+    <string name="msg_ad_title_require">Please enter title</string>
+    <string name="action_skip_ad">Skip</string>
+    <string name="action_close_ad">Close</string>
 </resources>
