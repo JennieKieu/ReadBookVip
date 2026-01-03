@@ -37,10 +37,11 @@ public class AdminAdvertisementFragment extends Fragment {
 
         // Load default fragment (List)
         loadFragment(listFragment);
-
-        // Setup tabs
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(getString(com.example.book.R.string.label_ad_list)));
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(getString(com.example.book.R.string.label_ad_stats)));
+        
+        // Select first tab by default
+        if (binding.tabLayout.getTabCount() > 0) {
+            binding.tabLayout.getTabAt(0).select();
+        }
     }
 
     private void initListener() {
