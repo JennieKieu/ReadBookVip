@@ -8,14 +8,14 @@ import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityAdminBookDetailBinding;
 import com.example.book.model.Book;
-import com.example.book.utils.AsyncTaskExecutor;
+// PDF code - commented for text/chapter migration
+// import com.example.book.utils.AsyncTaskExecutor;
 import com.example.book.utils.StringUtil;
-import com.github.pdfviewer.util.FitPolicy;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+// import com.github.pdfviewer.util.FitPolicy;
+// import java.io.IOException;
+// import java.io.InputStream;
+// import java.net.HttpURLConnection;
+// import java.net.URL;
 
 public class AdminBookDetailActivity extends BaseActivity {
 
@@ -30,9 +30,13 @@ public class AdminBookDetailActivity extends BaseActivity {
 
         loadDataIntent();
         initToolbar();
-        if (!StringUtil.isEmpty(mBook.getUrl())) {
-            new AdminBookDetailActivity.PdfDownloader().execute(mBook.getUrl());
-        }
+        // PDF code - commented for text/chapter migration
+        // if (!StringUtil.isEmpty(mBook.getUrl())) {
+        //     new AdminBookDetailActivity.PdfDownloader().execute(mBook.getUrl());
+        // }
+        
+        // TODO: Implement chapter viewing for admin (similar to BookDetailActivity)
+        GlobalFunction.showToastMessage(this, "Xem chương sách - Tính năng đang phát triển");
     }
 
     private void initToolbar() {
@@ -49,6 +53,8 @@ public class AdminBookDetailActivity extends BaseActivity {
         }
     }
 
+    // PDF code - commented for text/chapter migration
+    /*
     private void handleReadBookEpub(InputStream inputStream) {
         mBinding.pdfView.fromStream(inputStream)
                 .defaultPage(0)
@@ -94,4 +100,5 @@ public class AdminBookDetailActivity extends BaseActivity {
             }
         }
     }
+    */
 }

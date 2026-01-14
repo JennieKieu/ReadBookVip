@@ -92,6 +92,8 @@
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp" />
 
+            <!-- PDF URL field - Hidden for text/chapter migration -->
+            <!--
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -110,6 +112,7 @@
                 android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp" />
+            -->
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -124,6 +127,16 @@
                     android:layout_height="wrap_content"
                     android:text="@string/label_book_featured" />
             </RelativeLayout>
+
+            <Button
+                android:id="@+id/btn_manage_chapters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_20"
+                android:background="@drawable/bg_white_corner_6_border_gray"
+                android:text="Quản lý chương"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="@dimen/text_size_14sp" />
 
             <Button
                 android:id="@+id/btn_add_or_edit"

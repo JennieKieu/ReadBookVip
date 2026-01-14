@@ -11,8 +11,18 @@
         android:id="@+id/layout_toolbar"
         layout="@layout/layout_toolbar" />
 
+    <!-- PDF View - Commented for text/chapter migration -->
+    <!--
     <com.github.pdfviewer.PDFView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+    -->
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="Xem chương sách - Tính năng đang phát triển"
+        android:textSize="@dimen/text_size_16sp" />
 </LinearLayout>

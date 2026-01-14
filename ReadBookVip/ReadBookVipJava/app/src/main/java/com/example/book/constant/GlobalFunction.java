@@ -16,10 +16,19 @@ import androidx.core.app.ActivityCompat;
 import com.example.book.MyApplication;
 import com.example.book.activity.BookByCategoryActivity;
 import com.example.book.activity.BookDetailActivity;
+import com.example.book.api.ApiClient;
+import com.example.book.api.BookApiService;
 import com.example.book.model.Book;
+import com.example.book.model.BookText;
 import com.example.book.model.Category;
 import com.example.book.model.UserInfo;
 import com.example.book.prefs.DataStoreManager;
+
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -211,5 +220,69 @@ public class GlobalFunction {
             }
         }
         return userInfo;
+    }
+
+    // New API-based methods for BookText (SQL Server)
+    public static void onClickFavoriteBookText(Context context, BookText book, boolean isFavorite) {
+        if (context == null || book == null) return;
+        BookApiService apiService = ApiClient.getApiService();
+        String userEmail = DataStoreManager.getUser().getEmail();
+        
+        if (isFavorite) {
+            apiService.addFavorite(book.getId(), userEmail).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    // Favorite added
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    // Silent fail
+                }
+            });
+        } else {
+            apiService.removeFavorite(book.getId(), userEmail).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    // Favorite removed
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    // Silent fail
+                }
+            });
+        }
+    }
+
+    public static void checkFavoriteBookText(Context context, BookText book, 
+                                             OnFavoriteCheckedListener listener) {
+        if (context == null || book == null) return;
+        BookApiService apiService = ApiClient.getApiService();
+        String userEmail = DataStoreManager.getUser().getEmail();
+        
+        apiService.getFavorites(userEmail).enqueue(new Callback<List<Long>>() {
+            @Override
+            public void onResponse(Call<List<Long>> call, Response<List<Long>> response) {
+                boolean isFavorite = false;
+                if (response.isSuccessful() && response.body() != null) {
+                    isFavorite = response.body().contains(book.getId());
+                }
+                if (listener != null) {
+                    listener.onFavoriteChecked(isFavorite);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Long>> call, Throwable t) {
+                if (listener != null) {
+                    listener.onFavoriteChecked(false);
+                }
+            }
+        });
+    }
+
+    public interface OnFavoriteCheckedListener {
+        void onFavoriteChecked(boolean isFavorite);
     }
 }

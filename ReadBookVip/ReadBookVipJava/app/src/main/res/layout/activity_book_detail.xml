@@ -11,8 +11,72 @@
         android:id="@+id/layout_toolbar"
         layout="@layout/layout_toolbar" />
 
+    <!-- PDF View - Commented for text/chapter migration -->
+    <!--
     <com.github.pdfviewer.PDFView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
+    -->
+
+    <!-- New HTML Reading View -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/define_dimen_16">
+
+            <TextView
+                android:id="@+id/tv_chapter_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_20sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimaryDark"
+                android:gravity="center"
+                android:layout_marginBottom="@dimen/define_dimen_16" />
+
+            <WebView
+                android:id="@+id/webViewChapter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Chapter Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/white"
+        android:padding="@dimen/define_dimen_8"
+        android:elevation="4dp">
+
+        <Button
+            android:id="@+id/btn_prev_chapter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/define_dimen_4"
+            android:text="Chương trước"
+            android:textSize="@dimen/text_size_14sp" />
+
+        <Button
+            android:id="@+id/btn_next_chapter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/define_dimen_4"
+            android:text="Chương sau"
+            android:textSize="@dimen/text_size_14sp" />
+
+    </LinearLayout>
 </LinearLayout>
