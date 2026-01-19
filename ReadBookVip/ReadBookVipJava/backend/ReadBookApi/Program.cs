@@ -45,5 +45,14 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Configure URLs - listen on all interfaces for Android emulator access
+app.Urls.Add("http://0.0.0.0:5000");
+app.Urls.Add("https://0.0.0.0:5001");
+
+Console.WriteLine("Backend API is running...");
+Console.WriteLine("HTTP: http://localhost:5000");
+Console.WriteLine("HTTPS: https://localhost:5001");
+Console.WriteLine("Swagger: http://localhost:5000/swagger");
+
 app.Run();
 

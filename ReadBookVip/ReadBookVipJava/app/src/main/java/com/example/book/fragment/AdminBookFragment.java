@@ -17,30 +17,40 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.activity.admin.AdminAddBookActivity;
 import com.example.book.activity.admin.AdminBookDetailActivity;
 import com.example.book.adapter.admin.AdminBookAdapter;
+import com.example.book.api.ApiClient;
+import com.example.book.api.BookApiService;
 import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.FragmentAdminBookBinding;
 import com.example.book.listener.IOnAdminManagerBookListener;
 import com.example.book.model.Book;
+import com.example.book.model.BookText;
 import com.example.book.utils.StringUtil;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
+// Firebase code - commented for SQL Server migration
+// import com.example.book.MyApplication;
+// import com.google.firebase.database.ChildEventListener;
+// import com.google.firebase.database.DataSnapshot;
+// import com.google.firebase.database.DatabaseError;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AdminBookFragment extends Fragment {
 
     private FragmentAdminBookBinding binding;
     private List<Book> mListBook;
     private AdminBookAdapter mAdminBookAdapter;
-    private ChildEventListener mChildEventListener;
+    // Firebase code - commented for SQL Server migration
+    // private ChildEventListener mChildEventListener;
+    private BookApiService apiService;
 
     @Nullable
     @Override
@@ -49,6 +59,7 @@ public class AdminBookFragment extends Fragment {
 
         initView();
         initListener();
+        apiService = ApiClient.getApiService();
         loadListBook("");
 
         return binding.getRoot();
@@ -142,23 +153,55 @@ public class AdminBookFragment extends Fragment {
                 .setMessage(getString(R.string.msg_confirm_delete))
                 .setPositiveButton(getString(R.string.action_ok), (dialogInterface, i) -> {
                     if (getActivity() == null) return;
+                    
+                    // New API-based delete
+                    showProgressDialog(true);
+                    apiService.deleteBook(book.getId()).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                            showProgressDialog(false);
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getActivity(),
+                                        getString(R.string.msg_delete_book_successfully),
+                                        Toast.LENGTH_SHORT).show();
+                                // Reload list after delete
+                                loadListBook(binding.edtSearchName.getText().toString().trim());
+                            } else {
+                                Toast.makeText(getActivity(),
+                                        "Lỗi khi xóa sách", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                            showProgressDialog(false);
+                            Toast.makeText(getActivity(),
+                                    "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    
+                    // Firebase code - commented for SQL Server migration
+                    /*
                     MyApplication.get(getActivity()).bookDatabaseReference()
                             .child(String.valueOf(book.getId())).removeValue((error, ref) ->
                                     Toast.makeText(getActivity(),
                                             getString(R.string.msg_delete_book_successfully),
                                             Toast.LENGTH_SHORT).show());
+                    */
                 })
                 .setNegativeButton(getString(R.string.action_cancel), null)
                 .show();
     }
 
+    private void showProgressDialog(boolean show) {
+        if (getActivity() != null && getActivity() instanceof com.example.book.activity.BaseActivity) {
+            ((com.example.book.activity.BaseActivity) getActivity()).showProgressDialog(show);
+        }
+    }
+
     private void searchBook() {
         String strKey = binding.edtSearchName.getText().toString().trim();
         resetListBook();
-        if (getActivity() != null) {
-            MyApplication.get(getActivity()).bookDatabaseReference()
-                    .removeEventListener(mChildEventListener);
-        }
         loadListBook(strKey);
         GlobalFunction.hideSoftKeyboard(getActivity());
     }
@@ -173,6 +216,47 @@ public class AdminBookFragment extends Fragment {
 
     public void loadListBook(String keyword) {
         if (getActivity() == null) return;
+        
+        // New API-based load
+        showProgressDialog(true);
+        apiService.getAllBooks().enqueue(new Callback<List<BookText>>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onResponse(@NonNull Call<List<BookText>> call, @NonNull Response<List<BookText>> response) {
+                showProgressDialog(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    mListBook.clear();
+                    for (BookText bookText : response.body()) {
+                        // Filter by keyword if provided
+                        if (StringUtil.isEmpty(keyword)) {
+                            mListBook.add(convertBookTextToBook(bookText));
+                        } else {
+                            String searchText = GlobalFunction.getTextSearch(bookText.getTitle()).toLowerCase().trim();
+                            String keywordLower = GlobalFunction.getTextSearch(keyword).toLowerCase().trim();
+                            if (searchText.contains(keywordLower)) {
+                                mListBook.add(convertBookTextToBook(bookText));
+                            }
+                        }
+                    }
+                    if (mAdminBookAdapter != null) {
+                        mAdminBookAdapter.notifyDataSetChanged();
+                    }
+                } else {
+                    Toast.makeText(getActivity(),
+                            "Lỗi khi tải danh sách sách", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<BookText>> call, @NonNull Throwable t) {
+                showProgressDialog(false);
+                Toast.makeText(getActivity(),
+                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+        
+        // Firebase code - commented for SQL Server migration
+        /*
         mChildEventListener = new ChildEventListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
@@ -228,14 +312,40 @@ public class AdminBookFragment extends Fragment {
         };
         MyApplication.get(getActivity()).bookDatabaseReference()
                 .addChildEventListener(mChildEventListener);
+        */
+    }
+
+    // Helper method to convert BookText to Book (for compatibility with existing adapter)
+    private Book convertBookTextToBook(BookText bookText) {
+        Book book = new Book();
+        book.setId(bookText.getId());
+        book.setTitle(bookText.getTitle());
+        book.setImage(bookText.getImage());
+        book.setBanner(bookText.getBanner());
+        book.setCategoryId(bookText.getCategoryId() != null ? bookText.getCategoryId() : 0);
+        book.setCategoryName(bookText.getCategoryName());
+        book.setFeatured(bookText.isFeatured());
+        // Note: url field is not used anymore (PDF migration)
+        book.setUrl("");
+        return book;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // Firebase code - commented for SQL Server migration
+        /*
         if (getActivity() != null && mChildEventListener != null) {
             MyApplication.get(getActivity()).bookDatabaseReference()
                     .removeEventListener(mChildEventListener);
         }
+        */
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload list when fragment resumes (to show newly added books)
+        loadListBook(binding.edtSearchName.getText().toString().trim());
     }
 }
