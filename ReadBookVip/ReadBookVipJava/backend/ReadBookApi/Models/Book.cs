@@ -8,6 +8,9 @@ public class Book
     public string? Banner { get; set; }
     public long? CategoryId { get; set; }
     public string? CategoryName { get; set; }
+    public string? Description { get; set; }
+    public string? Tags { get; set; }
+    public string? Status { get; set; } // 'completed' or 'ongoing'
     public bool Featured { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

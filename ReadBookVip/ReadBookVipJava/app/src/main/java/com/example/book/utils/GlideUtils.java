@@ -12,11 +12,18 @@ public class GlideUtils {
             imageView.setImageResource(R.drawable.img_banner_no_image);
             return;
         }
-        Glide.with(imageView.getContext())
-                .load(url)
-                .error(R.drawable.img_banner_no_image)
-                .dontAnimate()
-                .into(imageView);
+        
+        // Check if it's base64 image
+        if (url.startsWith("data:image")) {
+            ImageUtils.loadImage(imageView, url);
+        } else {
+            // URL image
+            Glide.with(imageView.getContext())
+                    .load(url)
+                    .error(R.drawable.img_banner_no_image)
+                    .dontAnimate()
+                    .into(imageView);
+        }
     }
 
     public static void loadUrl(String url, ImageView imageView) {
@@ -24,10 +31,17 @@ public class GlideUtils {
             imageView.setImageResource(R.drawable.img_no_image);
             return;
         }
-        Glide.with(imageView.getContext())
-                .load(url)
-                .error(R.drawable.img_no_image)
-                .dontAnimate()
-                .into(imageView);
+        
+        // Check if it's base64 image
+        if (url.startsWith("data:image")) {
+            ImageUtils.loadImage(imageView, url);
+        } else {
+            // URL image
+            Glide.with(imageView.getContext())
+                    .load(url)
+                    .error(R.drawable.img_no_image)
+                    .dontAnimate()
+                    .into(imageView);
+        }
     }
 }

@@ -10,6 +10,9 @@ public class BookText implements Serializable {
     private String banner;
     private Long categoryId;
     private String categoryName;
+    private String description;
+    private String tags;
+    private String status; // "completed" or "ongoing"
     private boolean featured;
     private int chapterCount;
     private List<Chapter> chapters;
@@ -26,6 +29,7 @@ public class BookText implements Serializable {
         this.categoryName = categoryName;
         this.featured = featured;
         this.chapterCount = chapterCount;
+        this.status = "ongoing"; // default value
     }
 
     public long getId() {
@@ -98,6 +102,30 @@ public class BookText implements Serializable {
 
     public void setChapters(List<Chapter> chapters) {
         this.chapters = chapters;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
 

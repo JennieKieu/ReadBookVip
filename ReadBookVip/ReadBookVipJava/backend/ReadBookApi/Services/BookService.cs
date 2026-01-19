@@ -29,6 +29,9 @@ public class BookService : IBookService
             Banner = b.Banner,
             CategoryId = b.CategoryId,
             CategoryName = b.CategoryName,
+            Description = b.Description,
+            Tags = b.Tags,
+            Status = b.Status ?? "ongoing", // Default to 'ongoing' if NULL
             Featured = b.Featured,
             ChapterCount = b.Chapters.Count
         }).ToList();
@@ -71,6 +74,9 @@ public class BookService : IBookService
             Banner = b.Banner,
             CategoryId = b.CategoryId,
             CategoryName = b.CategoryName,
+            Description = b.Description,
+            Tags = b.Tags,
+            Status = b.Status ?? "ongoing", // Default to 'ongoing' if NULL
             Featured = b.Featured,
             ChapterCount = b.Chapters.Count
         }).ToList();
@@ -92,6 +98,9 @@ public class BookService : IBookService
             Banner = b.Banner,
             CategoryId = b.CategoryId,
             CategoryName = b.CategoryName,
+            Description = b.Description,
+            Tags = b.Tags,
+            Status = b.Status ?? "ongoing", // Default to 'ongoing' if NULL
             Featured = b.Featured,
             ChapterCount = b.Chapters.Count
         }).ToList();
@@ -106,6 +115,9 @@ public class BookService : IBookService
             Banner = createBookDto.Banner,
             CategoryId = createBookDto.CategoryId,
             CategoryName = createBookDto.CategoryName,
+            Description = createBookDto.Description,
+            Tags = createBookDto.Tags,
+            Status = string.IsNullOrEmpty(createBookDto.Status) ? "ongoing" : createBookDto.Status,
             Featured = createBookDto.Featured,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -122,6 +134,9 @@ public class BookService : IBookService
             Banner = book.Banner,
             CategoryId = book.CategoryId,
             CategoryName = book.CategoryName,
+            Description = book.Description,
+            Tags = book.Tags,
+            Status = book.Status,
             Featured = book.Featured,
             ChapterCount = 0
         };
@@ -137,6 +152,9 @@ public class BookService : IBookService
         book.Banner = updateBookDto.Banner;
         book.CategoryId = updateBookDto.CategoryId;
         book.CategoryName = updateBookDto.CategoryName;
+        book.Description = updateBookDto.Description;
+        book.Tags = updateBookDto.Tags;
+        book.Status = string.IsNullOrEmpty(updateBookDto.Status) ? "ongoing" : updateBookDto.Status;
         book.Featured = updateBookDto.Featured;
         book.UpdatedAt = DateTime.UtcNow;
 
@@ -152,6 +170,9 @@ public class BookService : IBookService
             Banner = book.Banner,
             CategoryId = book.CategoryId,
             CategoryName = book.CategoryName,
+            Description = book.Description,
+            Tags = book.Tags,
+            Status = book.Status,
             Featured = book.Featured,
             ChapterCount = chapterCount
         };

@@ -52,4 +52,8 @@ public class MyApplication extends Application {
     public StorageReference getAdvertisementStorageReference() {
         return mFirebaseStorage.getReference("advertisements");
     }
+
+    public StorageReference getBookCoverStorageReference() {
+        return mFirebaseStorage.getReference("book_covers");
+    }
 }
