@@ -8,6 +8,7 @@
     app:cardElevation="2dp">
 
     <LinearLayout
+        android:id="@+id/layout_chapter_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -33,6 +34,17 @@
             android:textColor="@color/textColorPrimary"
             android:maxLines="2"
             android:ellipsize="end" />
+
+        <ImageView
+            android:id="@+id/img_reading_indicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="@dimen/define_dimen_8"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="Reading"
+            android:src="@drawable/ic_book"
+            android:tint="@color/white"
+            android:visibility="gone" />
 
         <ImageView
             android:layout_width="20dp"

@@ -12,6 +12,7 @@ public class Book implements Serializable {
     private String categoryName;
     private String banner;
     private String url;
+    private String description;
     private HashMap<String, UserInfo> favorite;
     private HashMap<String, UserInfo> history;
 
@@ -91,6 +92,14 @@ public class Book implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public HashMap<String, UserInfo> getFavorite() {

@@ -55,7 +55,7 @@ public class AdminChapterListActivity extends BaseActivity {
     private void initToolbar() {
         binding.layoutToolbar.imgToolbar.setOnClickListener(view -> finish());
         if (mBook != null) {
-            binding.layoutToolbar.tvToolbarTitle.setText("Chương: " + mBook.getTitle());
+            binding.layoutToolbar.tvToolbarTitle.setText("Chapters: " + mBook.getTitle());
         }
     }
 
@@ -97,7 +97,7 @@ public class AdminChapterListActivity extends BaseActivity {
                     mAdapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(AdminChapterListActivity.this,
-                            "Lỗi khi tải danh sách chương", Toast.LENGTH_SHORT).show();
+                            "Error loading chapters", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -105,7 +105,7 @@ public class AdminChapterListActivity extends BaseActivity {
             public void onFailure(@NonNull Call<List<Chapter>> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(AdminChapterListActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -134,11 +134,11 @@ public class AdminChapterListActivity extends BaseActivity {
                 showProgressDialog(false);
                 if (response.isSuccessful()) {
                     Toast.makeText(AdminChapterListActivity.this,
-                            "Xóa chương thành công", Toast.LENGTH_SHORT).show();
+                            "Chapter deleted successfully", Toast.LENGTH_SHORT).show();
                     loadListChapters();
                 } else {
                     Toast.makeText(AdminChapterListActivity.this,
-                            "Lỗi khi xóa chương", Toast.LENGTH_SHORT).show();
+                            "Error deleting chapter", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -146,7 +146,7 @@ public class AdminChapterListActivity extends BaseActivity {
             public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(AdminChapterListActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

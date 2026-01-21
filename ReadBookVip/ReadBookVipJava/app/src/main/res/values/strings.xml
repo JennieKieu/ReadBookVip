@@ -105,7 +105,7 @@
     <string name="label_add_category">Add category</string>
     <string name="label_update_category">Update category</string>
     <string name="label_book_link_url">Link url PDF(*)</string>
-    <string name="label_book_featured">Nổi bật</string>
+    <string name="label_book_featured">Featured</string>
     <string name="label_add_book">Add book</string>
     <string name="label_update_book">Update book</string>
     <string name="label_book_description">Description</string>
@@ -113,8 +113,8 @@
     <string name="label_book_status">Status</string>
     <string name="label_book_cover_image">Cover Image(*)</string>
     <string name="label_book_chapters">Chapters</string>
-    <string name="status_ongoing">Đang viết</string>
-    <string name="status_completed">Hoàn thành</string>
+    <string name="status_ongoing">Ongoing</string>
+    <string name="status_completed">Completed</string>
 
     <string name="msg_confirm_delete">Are you sure you want to delete this item?</string>
     <string name="msg_edit_category_success">Update category successfully</string>

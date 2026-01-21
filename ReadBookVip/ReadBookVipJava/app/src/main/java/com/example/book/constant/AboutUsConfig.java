@@ -2,9 +2,9 @@ package com.example.book.constant;
 
 public interface AboutUsConfig {
     String ABOUT_US_TITLE = "TinCoder";
-    String ABOUT_US_CONTENT = "Chuyên cung cấp source code Android Java & Kotlin. " +
-            "Cam kết cao về chất lượng sản phẩm và dịch vụ tốt nhất";
-    String ABOUT_US_SLOGAN = "Chuyên Source Code Android Java & Kotlin";
+    String ABOUT_US_CONTENT = "Specialized in providing Android Java & Kotlin source code. " +
+            "Committed to high quality products and best services";
+    String ABOUT_US_SLOGAN = "Specialized in Android Java & Kotlin Source Code";
     String ABOUT_US_WEBSITE_TITLE = "Website TinCoder";
 
     String PAGE_FACEBOOK = "fb://page/tincoder";

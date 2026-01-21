@@ -63,7 +63,9 @@ public class AdminAddBookActivity extends BaseActivity {
     
     // Image upload
     private Uri coverImageUri;
+    private Uri bannerImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Intent> bannerPickerLauncher;
     private ActivityResultLauncher<Intent> addChapterLauncher;
     
     // Inline chapters
@@ -86,6 +88,7 @@ public class AdminAddBookActivity extends BaseActivity {
         initInlineChapters();
         
         binding.btnSelectCover.setOnClickListener(v -> selectCoverImage());
+        binding.btnSelectBanner.setOnClickListener(v -> selectBannerImage());
         binding.btnAddChapter.setOnClickListener(v -> addInlineChapter());
         binding.btnAddOrEdit.setOnClickListener(v -> validateAndSaveBook());
     }
@@ -107,13 +110,40 @@ public class AdminAddBookActivity extends BaseActivity {
                             
                             // Display file name
                             String fileName = getFileName(coverImageUri);
-                            binding.tvCoverFileName.setText(fileName != null ? fileName : "Đã chọn ảnh");
+                            binding.tvCoverFileName.setText(fileName != null ? fileName : "Image selected");
                             
                             // Show preview
                             binding.imgCoverPreview.setVisibility(View.VISIBLE);
                             Glide.with(this)
                                     .load(coverImageUri)
                                     .into(binding.imgCoverPreview);
+                        }
+                    }
+                });
+        
+        bannerPickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        bannerImageUri = result.getData().getData();
+                        if (bannerImageUri != null) {
+                            // Grant persistent permission
+                            try {
+                                int flags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                                getContentResolver().takePersistableUriPermission(bannerImageUri, flags);
+                            } catch (SecurityException e) {
+                                e.printStackTrace();
+                            }
+                            
+                            // Display file name
+                            String fileName = getFileName(bannerImageUri);
+                            binding.tvBannerFileName.setText(fileName != null ? fileName : "Banner selected");
+                            
+                            // Show preview
+                            binding.imgBannerPreview.setVisibility(View.VISIBLE);
+                            Glide.with(this)
+                                    .load(bannerImageUri)
+                                    .into(binding.imgBannerPreview);
                         }
                     }
                 });
@@ -158,7 +188,15 @@ public class AdminAddBookActivity extends BaseActivity {
         intent.setType("image/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        imagePickerLauncher.launch(Intent.createChooser(intent, "Chọn ảnh bìa"));
+        imagePickerLauncher.launch(Intent.createChooser(intent, "Select cover image"));
+    }
+
+    private void selectBannerImage() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        bannerPickerLauncher.launch(Intent.createChooser(intent, "Select banner"));
     }
 
     private void loadDataIntent() {
@@ -184,9 +222,10 @@ public class AdminAddBookActivity extends BaseActivity {
         book.setTitle(bookText.getTitle());
         book.setImage(bookText.getImage());
         book.setBanner(bookText.getBanner());
-        book.setCategoryId(bookText.getCategoryId());
+        book.setCategoryId(bookText.getCategoryId() != null ? bookText.getCategoryId() : 0);
         book.setCategoryName(bookText.getCategoryName());
         book.setFeatured(bookText.isFeatured());
+        book.setDescription(bookText.getDescription()); // Include description
         return book;
     }
 
@@ -199,6 +238,7 @@ public class AdminAddBookActivity extends BaseActivity {
         bookText.setCategoryId(book.getCategoryId());
         bookText.setCategoryName(book.getCategoryName());
         bookText.setFeatured(book.isFeatured());
+        bookText.setDescription(book.getDescription()); // Include description
         return bookText;
     }
 
@@ -212,16 +252,22 @@ public class AdminAddBookActivity extends BaseActivity {
             binding.btnAddOrEdit.setText(getString(R.string.action_edit));
 
             binding.edtName.setText(mBookText.getTitle());
-            binding.edtBanner.setText(mBookText.getBanner());
             binding.edtDescription.setText(mBookText.getDescription());
             binding.edtTags.setText(mBookText.getTags());
             binding.chbFeatured.setChecked(mBookText.isFeatured());
             
             // Load existing cover image (base64 or URL)
             if (mBookText.getImage() != null && !mBookText.getImage().isEmpty()) {
-                binding.tvCoverFileName.setText("Ảnh hiện tại");
+                binding.tvCoverFileName.setText("Current image");
                 binding.imgCoverPreview.setVisibility(View.VISIBLE);
                 ImageUtils.loadImage(binding.imgCoverPreview, mBookText.getImage());
+            }
+            
+            // Load existing banner image (base64 or URL)
+            if (mBookText.getBanner() != null && !mBookText.getBanner().isEmpty()) {
+                binding.tvBannerFileName.setText("Current banner");
+                binding.imgBannerPreview.setVisibility(View.VISIBLE);
+                ImageUtils.loadImage(binding.imgBannerPreview, mBookText.getBanner());
             }
         } else {
             binding.layoutToolbar.tvToolbarTitle.setText(getString(R.string.label_add_book));
@@ -268,8 +314,8 @@ public class AdminAddBookActivity extends BaseActivity {
 
     private void loadStatusSpinner() {
         List<SelectObject> statusList = new ArrayList<>();
-        statusList.add(new SelectObject(0, getString(R.string.status_ongoing))); // "Đang viết"
-        statusList.add(new SelectObject(1, getString(R.string.status_completed))); // "Hoàn thành"
+        statusList.add(new SelectObject(0, getString(R.string.status_ongoing))); // "Ongoing"
+        statusList.add(new SelectObject(1, getString(R.string.status_completed))); // "Completed"
         
         AdminSelectAdapter adapter = new AdminSelectAdapter(this, R.layout.item_choose_option, statusList);
         binding.spnStatus.setAdapter(adapter);
@@ -357,7 +403,7 @@ public class AdminAddBookActivity extends BaseActivity {
             public void onFailure(@NonNull Call<List<Chapter>> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(AdminAddBookActivity.this, 
-                        "Lỗi khi tải danh sách chương: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Error loading chapters: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -375,7 +421,7 @@ public class AdminAddBookActivity extends BaseActivity {
     private void addInlineChapter() {
         // Check if book is saved first
         if (!isUpdate || mBookText == null) {
-            Toast.makeText(this, "Vui lòng lưu sách trước khi thêm chương", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please save the book before adding chapters", Toast.LENGTH_SHORT).show();
             return;
         }
         
@@ -413,9 +459,9 @@ public class AdminAddBookActivity extends BaseActivity {
 
     private void deleteInlineChapter(Chapter chapter, int position) {
         new AlertDialog.Builder(this)
-                .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc muốn xóa chương này?")
-                .setPositiveButton("Xóa", (dialog, which) -> {
+                .setTitle("Confirm Delete")
+                .setMessage("Are you sure you want to delete this chapter?")
+                .setPositiveButton("Delete", (dialog, which) -> {
                     // If chapter has ID (saved to DB), delete via API
                     if (chapter.getId() > 0) {
                         deleteChapterFromApi(chapter.getId(), position);
@@ -426,7 +472,7 @@ public class AdminAddBookActivity extends BaseActivity {
                         updateChapterListVisibility();
                     }
                 })
-                .setNegativeButton("Hủy", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -444,14 +490,14 @@ public class AdminAddBookActivity extends BaseActivity {
                             inlineChapterList.set(position, response.body());
                             inlineChapterAdapter.updateData(inlineChapterList);
                         }
-                        Toast.makeText(AdminAddBookActivity.this, "Cập nhật chương thành công", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminAddBookActivity.this, "Chapter updated successfully", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<Chapter> call, @NonNull Throwable t) {
                     showProgressDialog(false);
-                    Toast.makeText(AdminAddBookActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminAddBookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -464,14 +510,14 @@ public class AdminAddBookActivity extends BaseActivity {
                         inlineChapterList.add(response.body());
                         inlineChapterAdapter.updateData(inlineChapterList);
                         updateChapterListVisibility();
-                        Toast.makeText(AdminAddBookActivity.this, "Thêm chương thành công", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(AdminAddBookActivity.this, "Chapter added successfully", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(@NonNull Call<Chapter> call, @NonNull Throwable t) {
                     showProgressDialog(false);
-                    Toast.makeText(AdminAddBookActivity.this, "Lỗi: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminAddBookActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -487,7 +533,7 @@ public class AdminAddBookActivity extends BaseActivity {
                     inlineChapterList.remove(position);
                     inlineChapterAdapter.updateData(inlineChapterList);
                     updateChapterListVisibility();
-                    Toast.makeText(AdminAddBookActivity.this, "Xóa chương thành công", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AdminAddBookActivity.this, "Chapter deleted successfully", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -501,7 +547,6 @@ public class AdminAddBookActivity extends BaseActivity {
 
     private void validateAndSaveBook() {
         String strName = binding.edtName.getText().toString().trim();
-        String strBanner = binding.edtBanner.getText().toString().trim();
         String strDescription = binding.edtDescription.getText().toString().trim();
         String strTags = binding.edtTags.getText().toString().trim();
 
@@ -512,86 +557,119 @@ public class AdminAddBookActivity extends BaseActivity {
 
         // Cover image is required only for new books (unless already has image URL)
         if (!isUpdate && coverImageUri == null) {
-            Toast.makeText(this, "Vui lòng chọn ảnh bìa", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select cover image", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (StringUtil.isEmpty(strBanner)) {
-            Toast.makeText(this, getString(R.string.msg_input_banner_require), Toast.LENGTH_SHORT).show();
+        // Banner image is required only for new books (unless already has banner)
+        if (!isUpdate && bannerImageUri == null) {
+            Toast.makeText(this, "Please select banner", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (mCategorySelected == null) {
-            Toast.makeText(this, "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select category", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (mStatusSelected == null) {
-            Toast.makeText(this, "Vui lòng chọn trạng thái", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please select status", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // If has new cover image, convert to base64
-        if (coverImageUri != null) {
-            convertImageToBase64AndSaveBook(strName, strBanner, strDescription, strTags);
+        // Convert images to base64 if needed
+        if (coverImageUri != null || bannerImageUri != null) {
+            convertImagesToBase64AndSaveBook(strName, strDescription, strTags);
         } else {
-            // No new image, just save book
-            saveBookToApi(strName, mBookText != null ? mBookText.getImage() : null, strBanner, strDescription, strTags);
+            // No new images, just save book with existing images
+            String existingImage = mBookText != null ? mBookText.getImage() : null;
+            String existingBanner = mBookText != null ? mBookText.getBanner() : null;
+            saveBookToApi(strName, existingImage, existingBanner, strDescription, strTags);
         }
     }
 
-    private void convertImageToBase64AndSaveBook(String title, String banner, String description, String tags) {
+    private void convertImagesToBase64AndSaveBook(String title, String description, String tags) {
         showProgressDialog(true);
         
-        try {
-            // Read image from URI
-            InputStream inputStream = getContentResolver().openInputStream(coverImageUri);
-            if (inputStream == null) {
-                showProgressDialog(false);
-                Toast.makeText(this, "Không thể đọc file ảnh", Toast.LENGTH_SHORT).show();
-                return;
+        final String finalTitle = title;
+        final String finalDescription = description;
+        final String finalTags = tags;
+        
+        new Thread(() -> {
+            try {
+                String base64Image = null;
+                String base64Banner = null;
+                
+                // Convert cover image if selected
+                if (coverImageUri != null) {
+                    base64Image = convertImageUriToBase64(coverImageUri, 800);
+                } else if (mBookText != null && mBookText.getImage() != null) {
+                    base64Image = mBookText.getImage(); // Keep existing
+                }
+                
+                // Convert banner image if selected
+                if (bannerImageUri != null) {
+                    base64Banner = convertImageUriToBase64(bannerImageUri, 1200); // Banner can be wider
+                } else if (mBookText != null && mBookText.getBanner() != null) {
+                    base64Banner = mBookText.getBanner(); // Keep existing
+                }
+                
+                // Create final variables for lambda
+                final String finalBase64Image = base64Image;
+                final String finalBase64Banner = base64Banner;
+                
+                // Save on main thread
+                runOnUiThread(() -> {
+                    showProgressDialog(false);
+                    saveBookToApi(finalTitle, finalBase64Image, finalBase64Banner, finalDescription, finalTags);
+                });
+                
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    showProgressDialog(false);
+                    Toast.makeText(this, "Error processing image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                });
             }
-
-            // Decode to Bitmap
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            inputStream.close();
-            
-            if (bitmap == null) {
-                showProgressDialog(false);
-                Toast.makeText(this, "Không thể decode ảnh", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // Resize image to reduce size (max 800px width)
-            int maxWidth = 800;
-            if (bitmap.getWidth() > maxWidth) {
-                int newHeight = (int) ((float) maxWidth / bitmap.getWidth() * bitmap.getHeight());
-                bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
-            }
-
-            // Convert to base64
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream); // 80% quality
-            byte[] byteArray = byteArrayOutputStream.toByteArray();
-            String base64Image = "data:image/jpeg;base64," + Base64.encodeToString(byteArray, Base64.NO_WRAP);
-            
-            byteArrayOutputStream.close();
-            
-            // Save book with base64 image
-            saveBookToApi(title, base64Image, banner, description, tags);
-            
-        } catch (Exception e) {
-            showProgressDialog(false);
-            Toast.makeText(this, "Lỗi khi xử lý ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
+        }).start();
+    }
+    
+    private String convertImageUriToBase64(Uri imageUri, int maxWidth) throws Exception {
+        // Read image from URI
+        InputStream inputStream = getContentResolver().openInputStream(imageUri);
+        if (inputStream == null) {
+            throw new Exception("Cannot read image file");
         }
+
+        // Decode to Bitmap
+        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+        inputStream.close();
+        
+        if (bitmap == null) {
+            throw new Exception("Cannot decode image");
+        }
+
+        // Resize image to reduce size
+        if (bitmap.getWidth() > maxWidth) {
+            int newHeight = (int) ((float) maxWidth / bitmap.getWidth() * bitmap.getHeight());
+            bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
+        }
+
+        // Convert to base64
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream); // 80% quality
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        String base64 = "data:image/jpeg;base64," + Base64.encodeToString(byteArray, Base64.NO_WRAP);
+        
+        byteArrayOutputStream.close();
+        return base64;
     }
 
-    private void saveBookToApi(String title, String imageBase64, String banner, String description, String tags) {
+    private void saveBookToApi(String title, String imageBase64, String bannerBase64, String description, String tags) {
         BookText bookText = new BookText();
         bookText.setTitle(title);
         bookText.setImage(imageBase64); // Base64 string hoặc URL cũ
-        bookText.setBanner(banner);
+        bookText.setBanner(bannerBase64); // Base64 string hoặc URL cũ
         bookText.setDescription(description);
         bookText.setTags(tags);
         bookText.setStatus(mStatusSelected.getId() == 1 ? "completed" : "ongoing");
@@ -615,7 +693,7 @@ public class AdminAddBookActivity extends BaseActivity {
                         finish();
                     } else {
                         Toast.makeText(AdminAddBookActivity.this,
-                                "Lỗi khi cập nhật sách", Toast.LENGTH_SHORT).show();
+                                "Error updating book", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -623,7 +701,7 @@ public class AdminAddBookActivity extends BaseActivity {
                 public void onFailure(@NonNull Call<BookText> call, @NonNull Throwable t) {
                     showProgressDialog(false);
                     Toast.makeText(AdminAddBookActivity.this,
-                            "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
@@ -645,7 +723,7 @@ public class AdminAddBookActivity extends BaseActivity {
                     } else {
                         showProgressDialog(false);
                         Toast.makeText(AdminAddBookActivity.this,
-                                "Lỗi khi thêm sách", Toast.LENGTH_SHORT).show();
+                                "Error adding book", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -653,7 +731,7 @@ public class AdminAddBookActivity extends BaseActivity {
                 public void onFailure(@NonNull Call<BookText> call, @NonNull Throwable t) {
                     showProgressDialog(false);
                     Toast.makeText(AdminAddBookActivity.this,
-                            "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -668,7 +746,7 @@ public class AdminAddBookActivity extends BaseActivity {
         if (index >= inlineChapterList.size()) {
             // All chapters saved
             showProgressDialog(false);
-            Toast.makeText(this, "Thêm sách và chương thành công", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Book and chapters added successfully", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -685,7 +763,7 @@ public class AdminAddBookActivity extends BaseActivity {
                 } else {
                     showProgressDialog(false);
                     Toast.makeText(AdminAddBookActivity.this,
-                            "Lỗi khi lưu chương " + (index + 1), Toast.LENGTH_SHORT).show();
+                            "Error saving chapter " + (index + 1), Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -693,7 +771,7 @@ public class AdminAddBookActivity extends BaseActivity {
             public void onFailure(@NonNull Call<Chapter> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(AdminAddBookActivity.this,
-                        "Lỗi kết nối khi lưu chương: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Connection error while saving chapter: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -124,7 +124,7 @@ public class BookDetailActivity extends BaseActivity {
                 } else {
                     showProgressDialog(false);
                     Toast.makeText(BookDetailActivity.this,
-                            "Không tìm thấy sách", Toast.LENGTH_SHORT).show();
+                            "Book not found", Toast.LENGTH_SHORT).show();
                     finish();
                 }
             }
@@ -133,7 +133,7 @@ public class BookDetailActivity extends BaseActivity {
             public void onFailure(@NonNull Call<BookText> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(BookDetailActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -149,7 +149,7 @@ public class BookDetailActivity extends BaseActivity {
                     mListChapters = response.body();
                     if (mListChapters.isEmpty()) {
                         Toast.makeText(BookDetailActivity.this,
-                                "Sách chưa có chương nào", Toast.LENGTH_SHORT).show();
+                                "No chapters available", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     
@@ -157,7 +157,7 @@ public class BookDetailActivity extends BaseActivity {
                     loadReadingHistory();
                 } else {
                     Toast.makeText(BookDetailActivity.this,
-                            "Lỗi khi tải danh sách chương", Toast.LENGTH_SHORT).show();
+                            "Error loading chapters", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -165,7 +165,7 @@ public class BookDetailActivity extends BaseActivity {
             public void onFailure(@NonNull Call<List<Chapter>> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(BookDetailActivity.this,
-                        "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -214,7 +214,7 @@ public class BookDetailActivity extends BaseActivity {
         // Display chapter title
         String title = chapter.getTitle();
         if (StringUtil.isEmpty(title)) {
-            title = "Chương " + chapter.getChapterNumber();
+            title = "Chapter " + chapter.getChapterNumber();
         }
         tvChapterTitle.setText(title);
         

@@ -53,6 +53,9 @@ public class BookService : IBookService
             Banner = book.Banner,
             CategoryId = book.CategoryId,
             CategoryName = book.CategoryName,
+            Description = book.Description,
+            Tags = book.Tags,
+            Status = book.Status ?? "ongoing", // Default to 'ongoing' if NULL
             Featured = book.Featured,
             ChapterCount = book.Chapters.Count
         };

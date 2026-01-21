@@ -1,9 +1,13 @@
 package com.example.book.activity;
 
 import android.content.Intent;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,6 +21,7 @@ import com.example.book.constant.Constant;
 import com.example.book.databinding.ActivityBookInfoBinding;
 import com.example.book.listener.IOnChapterClickListener;
 import com.example.book.model.Book;
+import com.example.book.model.BookText;
 import com.example.book.model.Chapter;
 
 import java.util.ArrayList;
@@ -30,6 +35,7 @@ public class BookInfoActivity extends BaseActivity {
 
     private ActivityBookInfoBinding binding;
     private Book mBook;
+    private BookText mBookDetails;
     private List<Chapter> mListChapters;
     private ChapterAdapter chapterAdapter;
     private BookApiService apiService;
@@ -46,6 +52,8 @@ public class BookInfoActivity extends BaseActivity {
         loadDataIntent();
         initToolbar();
         initView();
+        initAppBarListener();
+        loadBookDetails();
         loadChapters();
     }
 
@@ -60,9 +68,43 @@ public class BookInfoActivity extends BaseActivity {
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle(mBook != null ? mBook.getTitle() : "");
+            // Set title in toolbar header
+            if (mBook != null && mBook.getTitle() != null) {
+                getSupportActionBar().setTitle(mBook.getTitle());
+            } else {
+                getSupportActionBar().setTitle("");
+            }
         }
         binding.toolbar.setNavigationOnClickListener(v -> finish());
+        
+        // Set navigation icon color to black
+        Drawable navigationIcon = binding.toolbar.getNavigationIcon();
+        if (navigationIcon != null) {
+            navigationIcon.setColorFilter(
+                ContextCompat.getColor(this, R.color.black),
+                PorterDuff.Mode.SRC_ATOP
+            );
+        }
+        
+        // Set toolbar title text color - will change based on scroll
+        binding.toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.white));
+    }
+    
+    private void initAppBarListener() {
+        binding.appbar.addOnOffsetChangedListener((appBarLayout, verticalOffset) -> {
+            // Calculate scroll percentage
+            int totalScrollRange = appBarLayout.getTotalScrollRange();
+            float scrollPercentage = Math.abs(verticalOffset) / (float) totalScrollRange;
+            
+            // Change title color based on scroll position
+            if (scrollPercentage > 0.5f) {
+                // More than 50% scrolled - show black text
+                binding.toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.black));
+            } else {
+                // Less than 50% scrolled - show white text
+                binding.toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.white));
+            }
+        });
     }
 
     private void initView() {
@@ -91,14 +133,14 @@ public class BookInfoActivity extends BaseActivity {
         binding.tvCategory.setText(mBook.getCategoryName());
         
         // Status - dummy for now since Book doesn't have status field
-        binding.tvStatus.setText("Đang cập nhật");
+        binding.tvStatus.setText("Updating");
         binding.tvStatus.setTextColor(getColor(R.color.blue));
 
         // Chapter count - will be updated after loading chapters
-        binding.tvChapterCount.setText("Đang tải...");
+        binding.tvChapterCount.setText("Loading...");
 
-        // Description - dummy for now
-        binding.tvDescription.setText("Đang cập nhật mô tả...");
+        // Description - will be loaded from API
+        binding.tvDescription.setText("Loading description...");
 
         // Setup RecyclerView for chapters
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -112,6 +154,64 @@ public class BookInfoActivity extends BaseActivity {
 
         // Start Reading button
         binding.btnStartReading.setOnClickListener(v -> goToChapterRead(0));
+    }
+
+    private void loadBookDetails() {
+        if (mBook == null) return;
+
+        apiService.getBookById(mBook.getId()).enqueue(new Callback<BookText>() {
+            @Override
+            public void onResponse(@NonNull Call<BookText> call, @NonNull Response<BookText> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    mBookDetails = response.body();
+                    updateBookDetails();
+                } else {
+                    binding.tvDescription.setText("No description available");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<BookText> call, @NonNull Throwable t) {
+                binding.tvDescription.setText("Failed to load description");
+            }
+        });
+    }
+
+    private void updateBookDetails() {
+        if (mBookDetails == null) return;
+
+        // Update description - check for null, empty, or whitespace only
+        String description = mBookDetails.getDescription();
+        if (description != null && !description.trim().isEmpty()) {
+            // Remove surrounding quotes if present (e.g., "description" -> description)
+            String cleanDescription = description.trim();
+            if (cleanDescription.startsWith("\"") && cleanDescription.endsWith("\"")) {
+                cleanDescription = cleanDescription.substring(1, cleanDescription.length() - 1);
+            }
+            binding.tvDescription.setText(cleanDescription);
+        } else {
+            binding.tvDescription.setText("No description available");
+        }
+
+        // Update status
+        if (mBookDetails.getStatus() != null) {
+            String status = mBookDetails.getStatus();
+            if ("completed".equalsIgnoreCase(status)) {
+                binding.tvStatus.setText("Completed");
+                binding.tvStatus.setTextColor(getColor(R.color.green));
+            } else {
+                binding.tvStatus.setText("Ongoing");
+                binding.tvStatus.setTextColor(getColor(R.color.blue));
+            }
+        }
+
+        // Update tags if available
+        if (mBookDetails.getTags() != null && !mBookDetails.getTags().trim().isEmpty()) {
+            binding.tvTags.setText(mBookDetails.getTags().trim());
+            binding.layoutTags.setVisibility(View.VISIBLE);
+        } else {
+            binding.layoutTags.setVisibility(View.GONE);
+        }
     }
 
     private void loadChapters() {
@@ -129,7 +229,7 @@ public class BookInfoActivity extends BaseActivity {
                     chapterAdapter.notifyDataSetChanged();
 
                     // Update chapter count
-                    binding.tvChapterCount.setText(String.format("%d chương", mListChapters.size()));
+                    binding.tvChapterCount.setText(String.format("%d chapters", mListChapters.size()));
 
                     // Show/hide empty state
                     if (mListChapters.isEmpty()) {
@@ -142,14 +242,14 @@ public class BookInfoActivity extends BaseActivity {
                         binding.btnStartReading.setEnabled(true);
                     }
                 } else {
-                    Toast.makeText(BookInfoActivity.this, "Không thể tải danh sách chương", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(BookInfoActivity.this, "Failed to load chapters", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Chapter>> call, @NonNull Throwable t) {
                 showProgressDialog(false);
-                Toast.makeText(BookInfoActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(BookInfoActivity.this, "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

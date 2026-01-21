@@ -5,9 +5,7 @@
     <item
         android:id="@+id/action_chapter_list"
         android:icon="@drawable/ic_menu"
-        android:title="Danh sách chương"
+        android:title="Chapter List"
         app:showAsAction="always" />
         
 </menu>
-
-

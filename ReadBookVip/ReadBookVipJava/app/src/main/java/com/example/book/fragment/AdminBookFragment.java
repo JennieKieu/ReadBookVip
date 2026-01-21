@@ -168,7 +168,7 @@ public class AdminBookFragment extends Fragment {
                                 loadListBook(binding.edtSearchName.getText().toString().trim());
                             } else {
                                 Toast.makeText(getActivity(),
-                                        "Lỗi khi xóa sách", Toast.LENGTH_SHORT).show();
+                                        "Error deleting book", Toast.LENGTH_SHORT).show();
                             }
                         }
 
@@ -176,7 +176,7 @@ public class AdminBookFragment extends Fragment {
                         public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
                             showProgressDialog(false);
                             Toast.makeText(getActivity(),
-                                    "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                     
@@ -243,7 +243,7 @@ public class AdminBookFragment extends Fragment {
                     }
                 } else {
                     Toast.makeText(getActivity(),
-                            "Lỗi khi tải danh sách sách", Toast.LENGTH_SHORT).show();
+                            "Error loading books", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -325,6 +325,7 @@ public class AdminBookFragment extends Fragment {
         book.setCategoryId(bookText.getCategoryId() != null ? bookText.getCategoryId() : 0);
         book.setCategoryName(bookText.getCategoryName());
         book.setFeatured(bookText.isFeatured());
+        book.setDescription(bookText.getDescription()); // Include description
         // Note: url field is not used anymore (PDF migration)
         book.setUrl("");
         return book;

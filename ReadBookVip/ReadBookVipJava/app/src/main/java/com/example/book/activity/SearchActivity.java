@@ -4,33 +4,41 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.adapter.BookAdapter;
+import com.example.book.api.ApiCallback;
+import com.example.book.api.ApiClient;
+import com.example.book.api.BookApiService;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivitySearchBinding;
 import com.example.book.listener.IOnClickBookListener;
 import com.example.book.model.Book;
+import com.example.book.model.BookText;
 import com.example.book.model.Category;
+import com.example.book.repository.BookRepository;
 import com.example.book.utils.StringUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SearchActivity extends BaseActivity {
 
     private ActivitySearchBinding mBinding;
     private List<Book> mListBook;
+    private List<Book> mListAllBooks; // Store all books for filtering
     private BookAdapter mBookAdapter;
-    private ValueEventListener mValueEventListener;
+    private BookApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +46,11 @@ public class SearchActivity extends BaseActivity {
         mBinding = ActivitySearchBinding.inflate(getLayoutInflater());
         setContentView(mBinding.getRoot());
 
+        apiService = ApiClient.getInstance().getBookApiService();
         initToolbar();
         initUi();
         initListener();
-        getListBookFromFirebase("");
+        loadAllBooksFromAPI("");
     }
 
     private void initToolbar() {
@@ -53,6 +62,7 @@ public class SearchActivity extends BaseActivity {
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         mBinding.rcvSearchResult.setLayoutManager(gridLayoutManager);
         mListBook = new ArrayList<>();
+        mListAllBooks = new ArrayList<>();
         mBookAdapter = new BookAdapter(mListBook, new IOnClickBookListener() {
             @Override
             public void onClickItemBook(Book book) {
@@ -87,9 +97,7 @@ public class SearchActivity extends BaseActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 String strKey = s.toString().trim();
-                if (strKey.isEmpty()) {
-                    getListBookFromFirebase("");
-                }
+                filterBooks(strKey);
             }
         });
 
@@ -104,31 +112,60 @@ public class SearchActivity extends BaseActivity {
         });
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    private void getListBookFromFirebase(String key) {
-        mValueEventListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                resetListBookData();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Book book = dataSnapshot.getValue(Book.class);
-                    if (book == null) return;
-                    if (StringUtil.isEmpty(key)) {
-                        mListBook.add(0, book);
-                    } else {
-                        if (GlobalFunction.getTextSearch(book.getTitle()).toLowerCase().trim()
-                                .contains(GlobalFunction.getTextSearch(key).toLowerCase().trim())) {
-                            mListBook.add(0, book);
-                        }
-                    }
+    private void loadAllBooksFromAPI(String searchKey) {
+        if (mListAllBooks.isEmpty()) {
+            // Load all books from API first time
+            showProgressDialog(true);
+            BookRepository.getInstance().getAllBooks(new ApiCallback<List<Book>>() {
+                @Override
+                public void onSuccess(List<Book> books) {
+                    showProgressDialog(false);
+                    mListAllBooks.clear();
+                    mListAllBooks.addAll(books);
+                    filterBooks(searchKey);
                 }
-                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        };
-        MyApplication.get(this).bookDatabaseReference().addValueEventListener(mValueEventListener);
+                @Override
+                public void onError(String errorMessage) {
+                    showProgressDialog(false);
+                    Toast.makeText(SearchActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // Already loaded, just filter
+            filterBooks(searchKey);
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    private void filterBooks(String searchKey) {
+        resetListBookData();
+        
+        if (StringUtil.isEmpty(searchKey)) {
+            // Show all books if search key is empty
+            mListBook.addAll(mListAllBooks);
+        } else {
+            // Filter books by title
+            String searchKeyLower = GlobalFunction.getTextSearch(searchKey).toLowerCase().trim();
+            for (Book book : mListAllBooks) {
+                String title = GlobalFunction.getTextSearch(book.getTitle()).toLowerCase().trim();
+                if (title.contains(searchKeyLower)) {
+                    mListBook.add(book);
+                }
+            }
+        }
+        
+        if (mBookAdapter != null) {
+            mBookAdapter.notifyDataSetChanged();
+        }
+        
+        // Show/hide empty state
+        if (mListBook.isEmpty()) {
+            mBinding.rcvSearchResult.setVisibility(View.GONE);
+            // You can add empty state view here if needed
+        } else {
+            mBinding.rcvSearchResult.setVisibility(View.VISIBLE);
+        }
     }
 
     private void resetListBookData() {
@@ -141,18 +178,7 @@ public class SearchActivity extends BaseActivity {
 
     private void searchBook() {
         String strKey = mBinding.edtSearchName.getText().toString().trim();
-        if (mValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mValueEventListener);
-        }
-        getListBookFromFirebase(strKey);
+        filterBooks(strKey);
         GlobalFunction.hideSoftKeyboard(this);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mValueEventListener);
-        }
     }
 }

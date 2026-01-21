@@ -22,8 +22,11 @@
                 android:id="@+id/rcv_data"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginStart="@dimen/define_dimen_10"
-                android:layout_marginBottom="@dimen/define_dimen_10" />
+                android:paddingStart="@dimen/define_dimen_16"
+                android:paddingEnd="@dimen/define_dimen_16"
+                android:paddingTop="@dimen/define_dimen_16"
+                android:paddingBottom="@dimen/define_dimen_16"
+                android:clipToPadding="false" />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <include

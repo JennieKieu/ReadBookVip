@@ -56,11 +56,11 @@ public class AdminAddChapterActivity extends BaseActivity {
     private void initToolbar() {
         binding.layoutToolbar.imgToolbar.setOnClickListener(view -> finish());
         if (isUpdate) {
-            binding.layoutToolbar.tvToolbarTitle.setText("Sửa chương");
-            binding.btnSaveChapter.setText("Cập nhật");
+            binding.layoutToolbar.tvToolbarTitle.setText("Edit Chapter");
+            binding.btnSaveChapter.setText("Update");
         } else {
-            binding.layoutToolbar.tvToolbarTitle.setText("Thêm chương");
-            binding.btnSaveChapter.setText("Thêm");
+            binding.layoutToolbar.tvToolbarTitle.setText("Add Chapter");
+            binding.btnSaveChapter.setText("Add");
         }
     }
 
@@ -68,7 +68,7 @@ public class AdminAddChapterActivity extends BaseActivity {
         apiService = ApiClient.getInstance().getBookApiService();
 
         // Setup RichEditor
-        binding.richEditor.setPlaceholder("Bắt đầu viết nội dung chương của bạn...");
+        binding.richEditor.setPlaceholder("Start writing your chapter content...");
         binding.richEditor.setEditorFontSize(16);
         binding.richEditor.setEditorFontColor(getResources().getColor(R.color.colorPrimaryDark, null));
         binding.richEditor.setPadding(10, 10, 10, 10);
@@ -114,7 +114,7 @@ public class AdminAddChapterActivity extends BaseActivity {
 
     private void saveOrUpdateChapter() {
         if (mBook == null) {
-            Toast.makeText(this, "Lỗi: Không có thông tin sách", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Error: No book information", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -123,12 +123,12 @@ public class AdminAddChapterActivity extends BaseActivity {
         String strContent = binding.richEditor.getHtml();
 
         if (StringUtil.isEmpty(strChapterNumber)) {
-            Toast.makeText(this, "Vui lòng nhập số chương", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter chapter number", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (StringUtil.isEmpty(strContent)) {
-            Toast.makeText(this, "Vui lòng nhập nội dung chương", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter chapter content", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -136,7 +136,7 @@ public class AdminAddChapterActivity extends BaseActivity {
         try {
             chapterNumber = Integer.parseInt(strChapterNumber);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Số chương không hợp lệ", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid chapter number", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -154,12 +154,12 @@ public class AdminAddChapterActivity extends BaseActivity {
                     showProgressDialog(false);
                     if (response.isSuccessful()) {
                         Toast.makeText(AdminAddChapterActivity.this,
-                                "Cập nhật chương thành công", Toast.LENGTH_SHORT).show();
+                                "Chapter updated successfully", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
                         finish();
                     } else {
                         Toast.makeText(AdminAddChapterActivity.this,
-                                "Lỗi khi cập nhật chương", Toast.LENGTH_SHORT).show();
+                                "Error updating chapter", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -184,12 +184,12 @@ public class AdminAddChapterActivity extends BaseActivity {
                     showProgressDialog(false);
                     if (response.isSuccessful()) {
                         Toast.makeText(AdminAddChapterActivity.this,
-                                "Thêm chương thành công", Toast.LENGTH_SHORT).show();
+                                "Chapter added successfully", Toast.LENGTH_SHORT).show();
                         setResult(RESULT_OK);
                         finish();
                     } else {
                         Toast.makeText(AdminAddChapterActivity.this,
-                                "Lỗi khi thêm chương", Toast.LENGTH_SHORT).show();
+                                "Error adding chapter", Toast.LENGTH_SHORT).show();
                     }
                 }
 

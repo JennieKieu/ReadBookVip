@@ -15,7 +15,7 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="250dp"
-            app:contentScrim="?attr/colorPrimary"
+            app:contentScrim="@color/white"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:titleEnabled="false">
 
@@ -36,6 +36,7 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
                 app:layout_collapseMode="pin"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
@@ -124,7 +125,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Giới thiệu"
+                android:text="Description"
                 android:textSize="@dimen/text_size_18sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimaryDark"
@@ -140,21 +141,37 @@
                 android:layout_marginBottom="@dimen/define_dimen_16" />
 
             <!-- Tags -->
-            <TextView
-                android:id="@+id/tv_tags"
+            <LinearLayout
+                android:id="@+id/layout_tags"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="@dimen/text_size_12sp"
-                android:textColor="@color/colorAccent"
+                android:orientation="vertical"
                 android:layout_marginBottom="@dimen/define_dimen_16"
-                android:visibility="gone" />
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Tags"
+                    android:textSize="@dimen/text_size_18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:layout_marginBottom="@dimen/define_dimen_8" />
+
+                <TextView
+                    android:id="@+id/tv_tags"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_14sp"
+                    android:textColor="@color/colorAccent" />
+            </LinearLayout>
 
             <!-- Start Reading Button -->
             <Button
                 android:id="@+id/btn_start_reading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Bắt đầu đọc"
+                android:text="Start Reading"
                 android:textSize="@dimen/text_size_16sp"
                 android:textStyle="bold"
                 android:padding="@dimen/define_dimen_12"
@@ -164,7 +181,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Danh sách chương"
+                android:text="Chapter List"
                 android:textSize="@dimen/text_size_18sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimaryDark"
@@ -182,7 +199,7 @@
                 android:id="@+id/tv_no_chapters"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Chưa có chương nào"
+                android:text="No chapters available"
                 android:textSize="@dimen/text_size_14sp"
                 android:textColor="@color/colorTextNoData"
                 android:gravity="center"

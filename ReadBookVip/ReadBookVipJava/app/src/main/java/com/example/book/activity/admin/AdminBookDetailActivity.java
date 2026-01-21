@@ -36,7 +36,7 @@ public class AdminBookDetailActivity extends BaseActivity {
         // }
         
         // TODO: Implement chapter viewing for admin (similar to BookDetailActivity)
-        GlobalFunction.showToastMessage(this, "Xem chương sách - Tính năng đang phát triển");
+        GlobalFunction.showToastMessage(this, "View chapters - Feature under development");
     }
 
     private void initToolbar() {

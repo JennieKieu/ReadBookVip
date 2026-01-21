@@ -70,10 +70,19 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private void initToolbar() {
         mBinding.header.imgToolbar.setImageResource(R.drawable.ic_menu);
         mBinding.header.tvToolbarTitle.setText(getString(R.string.app_name));
+        
+        // Hide user icon if admin
+        User user = DataStoreManager.getUser();
+        if (user != null && user.isAdmin()) {
+            mBinding.header.imgUser.setVisibility(View.GONE);
+        } else {
+            mBinding.header.imgUser.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initListener() {
         mBinding.header.imgToolbar.setOnClickListener(this);
+        mBinding.header.imgUser.setOnClickListener(this);
         mBinding.layoutFavorite.setOnClickListener(this);
         mBinding.layoutHistory.setOnClickListener(this);
         mBinding.layoutFeedback.setOnClickListener(this);
@@ -89,6 +98,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.img_toolbar) {
+            mBinding.drawerLayout.openDrawer(GravityCompat.START);
+        } else if (id == R.id.img_user) {
+            // Open user info or drawer menu
             mBinding.drawerLayout.openDrawer(GravityCompat.START);
         } else if (id == R.id.layout_favorite) {
             GlobalFunction.startActivity(this, FavoriteActivity.class);

@@ -94,5 +94,9 @@ public class AdminMainActivity extends BaseActivity {
     public void setToolBar() {
         mBinding.layoutToolbar.imgToolbar.setVisibility(View.GONE);
         mBinding.layoutToolbar.tvToolbarTitle.setText(getString(R.string.app_name));
+        // Hide user icon for admin
+        if (mBinding.layoutToolbar.imgUser != null) {
+            mBinding.layoutToolbar.imgUser.setVisibility(View.GONE);
+        }
     }
 }

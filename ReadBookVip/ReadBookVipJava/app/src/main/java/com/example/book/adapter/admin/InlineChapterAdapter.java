@@ -42,10 +42,10 @@ public class InlineChapterAdapter extends RecyclerView.Adapter<InlineChapterAdap
         Chapter chapter = chapters.get(position);
         if (chapter == null) return;
 
-        holder.tvChapterNumber.setText("Chương " + chapter.getChapterNumber());
+        holder.tvChapterNumber.setText("Chapter " + chapter.getChapterNumber());
         holder.tvChapterTitle.setText(chapter.getTitle() != null && !chapter.getTitle().isEmpty() 
                 ? chapter.getTitle() 
-                : "Chưa có tiêu đề");
+                : "No title");
 
         holder.imgEdit.setOnClickListener(v -> {
             if (listener != null) {

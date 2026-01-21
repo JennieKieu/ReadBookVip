@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
-                android:text="Số chương (*)" />
+                android:text="Chapter Number (*)" />
 
             <EditText
                 android:id="@+id/edt_chapter_number"
@@ -50,14 +50,14 @@
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:textSize="@dimen/text_size_12sp"
                 android:textColor="@color/colorGray"
-                android:text="Số chương được tự động tính toán, nhưng bạn có thể chỉnh sửa" />
+                android:text="Chapter number is auto-calculated, but you can edit it" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Tiêu đề chương" />
+                android:text="Chapter Title" />
 
             <EditText
                 android:id="@+id/edt_chapter_title"
@@ -65,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:hint="Vd: Khởi đầu cuộc hành trình"
+                android:hint="E.g: Beginning of the journey"
                 android:imeOptions="actionDone"
                 android:inputType="text"
                 android:padding="@dimen/define_dimen_12"
@@ -89,7 +89,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:textStyle="bold"
-                android:text="Nội dung chương (*)" />
+                android:text="Chapter Content (*)" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -97,7 +97,7 @@
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:textSize="@dimen/text_size_12sp"
                 android:textColor="@color/colorGray"
-                android:text="Sử dụng thanh công cụ bên dưới để định dạng văn bản" />
+                android:text="Use the toolbar below to format text" />
 
             <!-- Formatting toolbar -->
             <HorizontalScrollView

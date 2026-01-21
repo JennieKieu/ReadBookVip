@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Ảnh bìa"/>
+                android:text="Cover Image"/>
 
             <Button
                 android:id="@+id/btn_select_cover"
@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:text="Chọn ảnh từ thiết bị"
+                android:text="Select image from device"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp"
                 android:textAllCaps="false"
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
-                android:text="Chưa chọn ảnh"
+                android:text="No image selected"
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_12sp"
                 android:paddingStart="@dimen/define_dimen_4"
@@ -81,7 +81,7 @@
                 android:background="@drawable/bg_white_corner_6_border_gray"
                 android:visibility="gone"/>
 
-            <!-- Banner URL (kept as URL for now) -->
+            <!-- Banner Image Upload -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -89,17 +89,37 @@
                 android:layout_marginTop="@dimen/define_dimen_10"
                 android:text="@string/label_banner"/>
 
-            <EditText
-                android:id="@+id/edt_banner"
+            <Button
+                android:id="@+id/btn_select_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:imeOptions="actionNext"
-                android:inputType="text"
-                android:padding="@dimen/define_dimen_12"
+                android:text="Select banner from device"
                 android:textColor="@color/colorPrimaryDark"
-                android:textSize="@dimen/text_size_14sp" />
+                android:textSize="@dimen/text_size_14sp"
+                android:textAllCaps="false"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/tv_banner_file_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_4"
+                android:text="No banner selected"
+                android:textColor="@color/black"
+                android:textSize="@dimen/text_size_12sp"
+                android:paddingStart="@dimen/define_dimen_4"
+                android:paddingEnd="@dimen/define_dimen_4"/>
+
+            <ImageView
+                android:id="@+id/img_banner_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="@dimen/define_dimen_8"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_white_corner_6_border_gray"
+                android:visibility="gone"/>
 
             <!-- Category -->
             <TextView
@@ -123,7 +143,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Mô tả sách"/>
+                android:text="Book Description"/>
 
             <EditText
                 android:id="@+id/edt_description"
@@ -138,7 +158,7 @@
                 android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp"
-                android:hint="Nhập mô tả về nội dung sách..."/>
+                android:hint="Enter book description..."/>
 
             <!-- Tags -->
             <TextView
@@ -146,7 +166,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Tags (Thẻ)"/>
+                android:text="Tags"/>
 
             <EditText
                 android:id="@+id/edt_tags"
@@ -159,7 +179,7 @@
                 android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp"
-                android:hint="Ngăn cách bằng dấu phẩy. VD: lãng mạn, học đường"/>
+                android:hint="Separate by comma. E.g: romance, school"/>
 
             <!-- Status -->
             <TextView
@@ -167,7 +187,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Trạng thái"/>
+                android:text="Status"/>
 
             <Spinner
                 android:id="@+id/spn_status"
@@ -198,7 +218,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_16sp"
                 android:layout_marginTop="@dimen/define_dimen_20"
-                android:text="Danh sách chương"
+                android:text="Chapter List"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimaryDark"/>
 
@@ -214,7 +234,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Chưa có chương nào. Nhấn nút bên dưới để thêm."
+                android:text="No chapters yet. Click the button below to add."
                 android:textColor="@color/black"
                 android:textSize="@dimen/text_size_13sp"
                 android:gravity="center"
@@ -228,7 +248,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_10"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:text="+ Thêm chương mới"
+                android:text="+ Add New Chapter"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp" />
 
@@ -273,7 +293,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_20"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:text="Quản lý chương"
+                android:text="Manage Chapters"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp" />
             -->

@@ -15,10 +15,23 @@
         android:orientation="horizontal">
 
         <ImageView
+            android:id="@+id/img_user"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/define_dimen_10"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_menu_account"
+            android:tint="@color/colorPrimaryDark"
+            android:contentDescription="Account"
+            android:visibility="gone"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
             android:id="@+id/img_toolbar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="@dimen/define_dimen_10"
+            android:layout_toEndOf="@id/img_user"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_back"
             tools:ignore="ContentDescription" />

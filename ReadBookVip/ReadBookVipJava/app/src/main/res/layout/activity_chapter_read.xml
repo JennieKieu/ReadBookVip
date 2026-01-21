@@ -24,13 +24,24 @@
             app:titleTextColor="@color/white"
             app:navigationIcon="@drawable/ic_back" />
 
+        <!-- Overscroll Progress Indicator Top -->
+        <View
+            android:id="@+id/overscroll_indicator_top"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@color/colorAccent"
+            android:alpha="0"
+            android:visibility="gone" />
+
         <!-- Chapter Content -->
-        <ScrollView
+        <com.example.book.widget.OverscrollScrollView
             android:id="@+id/scroll_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:fillViewport="true">
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:overScrollMode="always">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -54,10 +65,20 @@
                     android:id="@+id/webViewChapter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none" />
+                    android:scrollbars="none"
+                    android:nestedScrollingEnabled="false" />
 
             </LinearLayout>
-        </ScrollView>
+        </com.example.book.widget.OverscrollScrollView>
+        
+        <!-- Overscroll Progress Indicator Bottom -->
+        <View
+            android:id="@+id/overscroll_indicator_bottom"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="@color/colorAccent"
+            android:alpha="0"
+            android:visibility="gone" />
 
         <!-- Navigation Buttons -->
         <LinearLayout
@@ -74,7 +95,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/define_dimen_4"
-                android:text="Chương trước"
+                android:text="Previous"
                 android:textSize="@dimen/text_size_14sp" />
 
             <Button
@@ -83,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/define_dimen_4"
-                android:text="Chương sau"
+                android:text="Next"
                 android:textSize="@dimen/text_size_14sp" />
 
         </LinearLayout>
@@ -114,7 +135,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Danh sách chương"
+                    android:text="Chapter List"
                     android:textSize="@dimen/text_size_18sp"
                     android:textStyle="bold"
                     android:textColor="@color/white" />

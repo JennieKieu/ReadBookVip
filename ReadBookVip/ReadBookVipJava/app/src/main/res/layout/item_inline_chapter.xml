@@ -18,7 +18,7 @@
             android:id="@+id/tv_chapter_number"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Chương 1"
+            android:text="Chapter 1"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="@dimen/text_size_14sp"
             android:textStyle="bold" />
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/define_dimen_4"
-            android:text="Tiêu đề chương"
+            android:text="Chapter Title"
             android:textColor="@color/black"
             android:textSize="@dimen/text_size_13sp"
             android:maxLines="2"

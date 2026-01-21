@@ -42,9 +42,9 @@ public class AdminChapterAdapter extends RecyclerView.Adapter<AdminChapterAdapte
         Chapter chapter = mListChapters.get(position);
         if (chapter == null) return;
 
-        holder.tvChapterNumber.setText("Chương " + chapter.getChapterNumber());
+        holder.tvChapterNumber.setText("Chapter " + chapter.getChapterNumber());
         holder.tvChapterTitle.setText(chapter.getTitle() != null && !chapter.getTitle().isEmpty()
-                ? chapter.getTitle() : "Không có tiêu đề");
+                ? chapter.getTitle() : "No title");
 
         holder.imgEdit.setOnClickListener(v -> {
             if (mListener != null) {
