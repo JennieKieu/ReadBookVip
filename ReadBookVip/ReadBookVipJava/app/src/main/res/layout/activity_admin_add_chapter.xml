@@ -11,15 +11,20 @@
         android:id="@+id/layout_toolbar"
         layout="@layout/layout_toolbar" />
 
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
+        <!-- Chapter info section (fixed at top) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/define_dimen_10">
+            android:padding="@dimen/define_dimen_10"
+            android:background="@color/white"
+            android:elevation="2dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -42,6 +47,14 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_4"
+                android:textSize="@dimen/text_size_12sp"
+                android:textColor="@color/colorGray"
+                android:text="Số chương được tự động tính toán, nhưng bạn có thể chỉnh sửa" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
                 android:text="Tiêu đề chương" />
@@ -52,36 +65,172 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:background="@drawable/bg_white_corner_6_border_gray"
-                android:imeOptions="actionNext"
+                android:hint="Vd: Khởi đầu cuộc hành trình"
+                android:imeOptions="actionDone"
                 android:inputType="text"
                 android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp" />
 
+        </LinearLayout>
+
+        <!-- Content editor section (takes remaining space) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="@dimen/define_dimen_10"
+            android:paddingTop="@dimen/define_dimen_4"
+            android:background="@color/bgMainColor">
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
-                android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="Nội dung (HTML) (*)" />
+                android:textStyle="bold"
+                android:text="Nội dung chương (*)" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_4"
+                android:textSize="@dimen/text_size_12sp"
+                android:textColor="@color/colorGray"
+                android:text="Sử dụng thanh công cụ bên dưới để định dạng văn bản" />
+
+            <!-- Formatting toolbar -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_8"
+                android:background="@color/white"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/define_dimen_8">
+
+                    <ImageButton
+                        android:id="@+id/btn_bold"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_format_bold"
+                        android:contentDescription="Bold" />
+
+                    <ImageButton
+                        android:id="@+id/btn_italic"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="@dimen/define_dimen_4"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_format_italic"
+                        android:contentDescription="Italic" />
+
+                    <ImageButton
+                        android:id="@+id/btn_underline"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="@dimen/define_dimen_4"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_format_underline"
+                        android:contentDescription="Underline" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="@dimen/define_dimen_8"
+                        android:layout_marginEnd="@dimen/define_dimen_8"
+                        android:background="@color/dividerColor" />
+
+                    <TextView
+                        android:id="@+id/btn_h1"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="H1"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:contentDescription="Heading 1" />
+
+                    <TextView
+                        android:id="@+id/btn_h2"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="@dimen/define_dimen_4"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="H2"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:contentDescription="Heading 2" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="@dimen/define_dimen_8"
+                        android:layout_marginEnd="@dimen/define_dimen_8"
+                        android:background="@color/dividerColor" />
+
+                    <ImageButton
+                        android:id="@+id/btn_bullet"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_format_list_bulleted"
+                        android:contentDescription="Bullet List" />
+
+                    <ImageButton
+                        android:id="@+id/btn_quote"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="@dimen/define_dimen_4"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:src="@drawable/ic_format_quote"
+                        android:contentDescription="Quote" />
+
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Rich text editor -->
             <jp.wasabeef.richeditor.RichEditor
                 android:id="@+id/rich_editor"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:layout_marginTop="@dimen/define_dimen_4"
-                android:background="@drawable/bg_white_corner_6_border_gray" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="@dimen/define_dimen_8"
+                android:padding="@dimen/define_dimen_12"
+                android:background="@color/white" />
+
+        </LinearLayout>
+
+        <!-- Save button section (fixed at bottom) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/define_dimen_10"
+            android:background="@color/white"
+            android:elevation="4dp">
 
             <Button
                 android:id="@+id/btn_save_chapter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/define_dimen_20"
                 android:background="@drawable/bg_main_corner_30"
                 android:text="@string/action_add"
                 android:textColor="@color/white"
-                android:textSize="@dimen/text_size_14sp" />
+                android:textSize="@dimen/text_size_14sp"
+                android:padding="@dimen/define_dimen_12" />
 
         </LinearLayout>
-    </ScrollView>
+
+    </LinearLayout>
+
 </LinearLayout>

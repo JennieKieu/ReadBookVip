@@ -9,10 +9,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.util.Base64;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -45,13 +43,13 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-
-import jp.wasabeef.richeditor.RichEditor;
 
 public class AdminAddBookActivity extends BaseActivity {
 
@@ -66,6 +64,7 @@ public class AdminAddBookActivity extends BaseActivity {
     // Image upload
     private Uri coverImageUri;
     private ActivityResultLauncher<Intent> imagePickerLauncher;
+    private ActivityResultLauncher<Intent> addChapterLauncher;
     
     // Inline chapters
     private List<Chapter> inlineChapterList;
@@ -77,13 +76,14 @@ public class AdminAddBookActivity extends BaseActivity {
         binding = ActivityAdminAddBookBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Initialize apiService first (needed by other methods)
+        apiService = ApiClient.getApiService();
+        
         initImagePicker();
         loadDataIntent();
         initToolbar();
         initView();
         initInlineChapters();
-
-        apiService = ApiClient.getApiService();
         
         binding.btnSelectCover.setOnClickListener(v -> selectCoverImage());
         binding.btnAddChapter.setOnClickListener(v -> addInlineChapter());
@@ -114,6 +114,18 @@ public class AdminAddBookActivity extends BaseActivity {
                             Glide.with(this)
                                     .load(coverImageUri)
                                     .into(binding.imgCoverPreview);
+                        }
+                    }
+                });
+        
+        // Add/Edit chapter launcher
+        addChapterLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        // Refresh chapter list after add/edit
+                        if (isUpdate && mBookText != null) {
+                            loadChaptersForBook(mBookText.getId());
                         }
                     }
                 });
@@ -309,6 +321,10 @@ public class AdminAddBookActivity extends BaseActivity {
         // Load chapters if editing existing book
         if (isUpdate && mBookText != null) {
             loadChaptersForBook(mBookText.getId());
+            binding.btnAddChapter.setVisibility(View.VISIBLE);
+        } else {
+            // Hide add chapter button for new books
+            binding.btnAddChapter.setVisibility(View.GONE);
         }
         
         updateChapterListVisibility();
@@ -323,6 +339,15 @@ public class AdminAddBookActivity extends BaseActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     inlineChapterList.clear();
                     inlineChapterList.addAll(response.body());
+                    
+                    // Sort chapters by chapter number (ascending)
+                    Collections.sort(inlineChapterList, new Comparator<Chapter>() {
+                        @Override
+                        public int compare(Chapter c1, Chapter c2) {
+                            return Integer.compare(c1.getChapterNumber(), c2.getChapterNumber());
+                        }
+                    });
+                    
                     inlineChapterAdapter.updateData(inlineChapterList);
                     updateChapterListVisibility();
                 }
@@ -348,97 +373,42 @@ public class AdminAddBookActivity extends BaseActivity {
     }
 
     private void addInlineChapter() {
-        // Show dialog to add chapter
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_chapter_inline, null);
+        // Check if book is saved first
+        if (!isUpdate || mBookText == null) {
+            Toast.makeText(this, "Vui lòng lưu sách trước khi thêm chương", Toast.LENGTH_SHORT).show();
+            return;
+        }
         
-        EditText edtChapterNumber = dialogView.findViewById(R.id.edt_chapter_number);
-        EditText edtChapterTitle = dialogView.findViewById(R.id.edt_chapter_title);
-        RichEditor edtChapterContent = dialogView.findViewById(R.id.editor_chapter_content);
+        // Calculate next chapter number (max + 1)
+        int nextChapterNumber = 1; // Default: start from 1
+        if (!inlineChapterList.isEmpty()) {
+            // Find max chapter number
+            int maxChapterNumber = 0;
+            for (Chapter chapter : inlineChapterList) {
+                if (chapter.getChapterNumber() > maxChapterNumber) {
+                    maxChapterNumber = chapter.getChapterNumber();
+                }
+            }
+            nextChapterNumber = maxChapterNumber + 1;
+        }
         
-        // Set next chapter number
-        int nextChapterNumber = inlineChapterList.size() + 1;
-        edtChapterNumber.setText(String.valueOf(nextChapterNumber));
-        
-        builder.setView(dialogView)
-                .setTitle("Thêm chương mới")
-                .setPositiveButton("Thêm", (dialog, which) -> {
-                    String chapterNumberStr = edtChapterNumber.getText().toString().trim();
-                    String chapterTitle = edtChapterTitle.getText().toString().trim();
-                    String chapterContent = edtChapterContent.getHtml();
-                    
-                    if (chapterNumberStr.isEmpty()) {
-                        Toast.makeText(this, "Vui lòng nhập số chương", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    
-                    if (chapterContent == null || chapterContent.trim().isEmpty()) {
-                        Toast.makeText(this, "Vui lòng nhập nội dung chương", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    
-                    int chapterNumber = Integer.parseInt(chapterNumberStr);
-                    
-                    Chapter newChapter = new Chapter();
-                    newChapter.setChapterNumber(chapterNumber);
-                    newChapter.setTitle(chapterTitle);
-                    newChapter.setContent(chapterContent);
-                    
-                    // If updating and book exists, save to API immediately
-                    if (isUpdate && mBookText != null) {
-                        newChapter.setBookId(mBookText.getId());
-                        saveChapterToApi(newChapter, -1); // -1 means add new
-                    } else {
-                        // Otherwise, add to temp list
-                        inlineChapterList.add(newChapter);
-                        inlineChapterAdapter.updateData(inlineChapterList);
-                        updateChapterListVisibility();
-                    }
-                })
-                .setNegativeButton("Hủy", null)
-                .create()
-                .show();
+        // Open AdminAddChapterActivity
+        Intent intent = new Intent(this, AdminAddChapterActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(Constant.OBJECT_BOOK, mBookText);
+        bundle.putInt("suggested_chapter_number", nextChapterNumber);
+        intent.putExtras(bundle);
+        addChapterLauncher.launch(intent);
     }
 
     private void editInlineChapter(Chapter chapter, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_chapter_inline, null);
-        
-        EditText edtChapterNumber = dialogView.findViewById(R.id.edt_chapter_number);
-        EditText edtChapterTitle = dialogView.findViewById(R.id.edt_chapter_title);
-        RichEditor edtChapterContent = dialogView.findViewById(R.id.editor_chapter_content);
-        
-        // Fill existing data
-        edtChapterNumber.setText(String.valueOf(chapter.getChapterNumber()));
-        edtChapterTitle.setText(chapter.getTitle());
-        edtChapterContent.setHtml(chapter.getContent());
-        
-        builder.setView(dialogView)
-                .setTitle("Sửa chương")
-                .setPositiveButton("Cập nhật", (dialog, which) -> {
-                    String chapterNumberStr = edtChapterNumber.getText().toString().trim();
-                    String chapterTitle = edtChapterTitle.getText().toString().trim();
-                    String chapterContent = edtChapterContent.getHtml();
-                    
-                    if (chapterNumberStr.isEmpty() || chapterContent == null || chapterContent.trim().isEmpty()) {
-                        Toast.makeText(this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    
-                    chapter.setChapterNumber(Integer.parseInt(chapterNumberStr));
-                    chapter.setTitle(chapterTitle);
-                    chapter.setContent(chapterContent);
-                    
-                    // If chapter has ID, update via API
-                    if (chapter.getId() > 0) {
-                        saveChapterToApi(chapter, position);
-                    } else {
-                        inlineChapterAdapter.updateData(inlineChapterList);
-                    }
-                })
-                .setNegativeButton("Hủy", null)
-                .create()
-                .show();
+        // Open AdminAddChapterActivity for editing
+        Intent intent = new Intent(this, AdminAddChapterActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putSerializable(Constant.OBJECT_BOOK, mBookText);
+        bundle.putSerializable("chapter", chapter);
+        intent.putExtras(bundle);
+        addChapterLauncher.launch(intent);
     }
 
     private void deleteInlineChapter(Chapter chapter, int position) {

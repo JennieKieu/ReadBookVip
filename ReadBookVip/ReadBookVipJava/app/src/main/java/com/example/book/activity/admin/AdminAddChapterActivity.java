@@ -26,6 +26,7 @@ public class AdminAddChapterActivity extends BaseActivity {
     private Chapter mChapter;
     private boolean isUpdate;
     private BookApiService apiService;
+    private int suggestedChapterNumber = 1; // Default to 1
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,9 @@ public class AdminAddChapterActivity extends BaseActivity {
                 isUpdate = true;
                 mChapter = (Chapter) bundle.getSerializable("chapter");
             }
+            if (bundle.containsKey("suggested_chapter_number")) {
+                suggestedChapterNumber = bundle.getInt("suggested_chapter_number", 1);
+            }
         }
     }
 
@@ -64,18 +68,48 @@ public class AdminAddChapterActivity extends BaseActivity {
         apiService = ApiClient.getApiService();
 
         // Setup RichEditor
-        binding.richEditor.setPlaceholder("Nhập nội dung chương (HTML)...");
-        binding.richEditor.setEditorHeight(400);
+        binding.richEditor.setPlaceholder("Bắt đầu viết nội dung chương của bạn...");
         binding.richEditor.setEditorFontSize(16);
         binding.richEditor.setEditorFontColor(getResources().getColor(R.color.colorPrimaryDark, null));
+        binding.richEditor.setPadding(10, 10, 10, 10);
+
+        // Setup formatting toolbar
+        setupFormattingToolbar();
 
         if (isUpdate && mChapter != null) {
+            // Edit existing chapter
             binding.edtChapterNumber.setText(String.valueOf(mChapter.getChapterNumber()));
             binding.edtChapterTitle.setText(mChapter.getTitle());
             binding.richEditor.setHtml(mChapter.getContent());
+        } else {
+            // Add new chapter - auto-fill chapter number (but allow editing)
+            binding.edtChapterNumber.setText(String.valueOf(suggestedChapterNumber));
         }
 
         binding.btnSaveChapter.setOnClickListener(v -> saveOrUpdateChapter());
+    }
+
+    private void setupFormattingToolbar() {
+        // Bold
+        binding.btnBold.setOnClickListener(v -> binding.richEditor.setBold());
+        
+        // Italic
+        binding.btnItalic.setOnClickListener(v -> binding.richEditor.setItalic());
+        
+        // Underline
+        binding.btnUnderline.setOnClickListener(v -> binding.richEditor.setUnderline());
+        
+        // Heading 1
+        binding.btnH1.setOnClickListener(v -> binding.richEditor.setHeading(1));
+        
+        // Heading 2
+        binding.btnH2.setOnClickListener(v -> binding.richEditor.setHeading(2));
+        
+        // Bullet list
+        binding.btnBullet.setOnClickListener(v -> binding.richEditor.setBullets());
+        
+        // Quote
+        binding.btnQuote.setOnClickListener(v -> binding.richEditor.setBlockquote());
     }
 
     private void saveOrUpdateChapter() {
@@ -121,6 +155,7 @@ public class AdminAddChapterActivity extends BaseActivity {
                     if (response.isSuccessful()) {
                         Toast.makeText(AdminAddChapterActivity.this,
                                 "Cập nhật chương thành công", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
                         finish();
                     } else {
                         Toast.makeText(AdminAddChapterActivity.this,
@@ -150,6 +185,7 @@ public class AdminAddChapterActivity extends BaseActivity {
                     if (response.isSuccessful()) {
                         Toast.makeText(AdminAddChapterActivity.this,
                                 "Thêm chương thành công", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
                         finish();
                     } else {
                         Toast.makeText(AdminAddChapterActivity.this,
