@@ -65,7 +65,7 @@ public class AdminAddChapterActivity extends BaseActivity {
     }
 
     private void initView() {
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getInstance().getBookApiService();
 
         // Setup RichEditor
         binding.richEditor.setPlaceholder("Bắt đầu viết nội dung chương của bạn...");

@@ -10,6 +10,7 @@
     <color name="textColorHeading">#3C3C3C</color>
     <color name="textColorLink">#032172</color>
     <color name="textColorDescription">#7C7C7C</color>
+    <color name="colorTextNoData">#999999</color>
 
     <color name="bgMainColor">#F0F0F0</color>
     <color name="bgFilter">#EFEBE9</color>

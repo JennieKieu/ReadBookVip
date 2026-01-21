@@ -60,7 +60,7 @@ public class AdminChapterListActivity extends BaseActivity {
     }
 
     private void initView() {
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getInstance().getBookApiService();
         mListChapters = new ArrayList<>();
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);

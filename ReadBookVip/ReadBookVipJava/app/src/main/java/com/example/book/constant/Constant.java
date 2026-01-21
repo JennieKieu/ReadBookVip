@@ -5,6 +5,9 @@ public class Constant {
     public static final String OBJECT_CATEGORY = "object_category";
     public static final String OBJECT_BOOK = "object_book";
     public static final String OBJECT_USER_INFO = "object_user_info";
+    public static final String BOOK_ID = "book_id";
+    public static final String BOOK_TITLE = "book_title";
+    public static final String CHAPTER_INDEX = "chapter_index";
 
     public static final int MAX_SIZE_LIST_CATEGORY = 5;
     public static final int MAX_SIZE_LIST_FEATURED = 5;

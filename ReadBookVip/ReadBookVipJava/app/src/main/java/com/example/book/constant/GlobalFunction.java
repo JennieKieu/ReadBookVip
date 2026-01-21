@@ -16,6 +16,7 @@ import androidx.core.app.ActivityCompat;
 import com.example.book.MyApplication;
 import com.example.book.activity.BookByCategoryActivity;
 import com.example.book.activity.BookDetailActivity;
+import com.example.book.activity.BookInfoActivity;
 import com.example.book.api.ApiClient;
 import com.example.book.api.BookApiService;
 import com.example.book.model.Book;
@@ -153,7 +154,7 @@ public class GlobalFunction {
             bundle.putSerializable(Constant.OBJECT_USER_INFO, userInfoHistory);
         }
 
-        startActivity(context, BookDetailActivity.class, bundle);
+        startActivity(context, BookInfoActivity.class, bundle);
     }
 
     private static UserInfo loadUserInfoHistory(Book book) {
@@ -225,7 +226,7 @@ public class GlobalFunction {
     // New API-based methods for BookText (SQL Server)
     public static void onClickFavoriteBookText(Context context, BookText book, boolean isFavorite) {
         if (context == null || book == null) return;
-        BookApiService apiService = ApiClient.getApiService();
+        BookApiService apiService = ApiClient.getInstance().getBookApiService();
         String userEmail = DataStoreManager.getUser().getEmail();
         
         if (isFavorite) {
@@ -258,7 +259,7 @@ public class GlobalFunction {
     public static void checkFavoriteBookText(Context context, BookText book, 
                                              OnFavoriteCheckedListener listener) {
         if (context == null || book == null) return;
-        BookApiService apiService = ApiClient.getApiService();
+        BookApiService apiService = ApiClient.getInstance().getBookApiService();
         String userEmail = DataStoreManager.getUser().getEmail();
         
         apiService.getFavorites(userEmail).enqueue(new Callback<List<Long>>() {

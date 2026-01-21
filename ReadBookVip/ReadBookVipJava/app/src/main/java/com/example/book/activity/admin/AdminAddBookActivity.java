@@ -77,7 +77,7 @@ public class AdminAddBookActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         // Initialize apiService first (needed by other methods)
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getInstance().getBookApiService();
         
         initImagePicker();
         loadDataIntent();

@@ -51,6 +51,14 @@
 
         <activity
             android:exported="false"
+            android:name="com.example.book.activity.BookInfoActivity" />
+
+        <activity
+            android:exported="false"
+            android:name="com.example.book.activity.ChapterReadActivity" />
+
+        <activity
+            android:exported="false"
             android:name="com.example.book.activity.ListCategoryActivity" />
 
         <activity

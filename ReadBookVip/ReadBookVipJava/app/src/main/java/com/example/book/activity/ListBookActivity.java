@@ -2,21 +2,20 @@ package com.example.book.activity;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.adapter.BookAdapter;
+import com.example.book.api.ApiCallback;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityListBookBinding;
 import com.example.book.listener.IOnClickBookListener;
 import com.example.book.model.Book;
 import com.example.book.model.Category;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
+import com.example.book.repository.BookRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +25,6 @@ public class ListBookActivity extends BaseActivity {
     private ActivityListBookBinding mBinding;
     private BookAdapter mBookAdapter;
     private List<Book> mListBook;
-    private ValueEventListener mBookValueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +34,8 @@ public class ListBookActivity extends BaseActivity {
 
         initToolbar();
         initView();
-        loadListBookFromFirebase();
+        initSwipeRefresh();
+        loadListBookFromAPI();
     }
 
     private void initToolbar() {
@@ -67,24 +66,35 @@ public class ListBookActivity extends BaseActivity {
         mBinding.rcvData.setAdapter(mBookAdapter);
     }
 
+    private void initSwipeRefresh() {
+        mBinding.swipeRefresh.setOnRefreshListener(this::loadListBookFromAPI);
+    }
+
     @SuppressLint("NotifyDataSetChanged")
-    private void loadListBookFromFirebase() {
-        mBookValueEventListener = new ValueEventListener() {
+    private void loadListBookFromAPI() {
+        showLoadingState();
+        
+        BookRepository.getInstance().getAllBooks(new ApiCallback<List<Book>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onSuccess(List<Book> books) {
+                mBinding.swipeRefresh.setRefreshing(false);
                 resetListBook();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Book book = dataSnapshot.getValue(Book.class);
-                    if (book == null) return;
-                    mListBook.add(0, book);
+                mListBook.addAll(books);
+                
+                if (mListBook.isEmpty()) {
+                    showEmptyState();
+                } else {
+                    showContentState();
+                    if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
                 }
-                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        };
-        MyApplication.get(this).bookDatabaseReference().addValueEventListener(mBookValueEventListener);
+            public void onError(String errorMessage) {
+                mBinding.swipeRefresh.setRefreshing(false);
+                showErrorState(errorMessage);
+            }
+        });
     }
 
     private void resetListBook() {
@@ -95,11 +105,36 @@ public class ListBookActivity extends BaseActivity {
         }
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mBookValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mBookValueEventListener);
+    private void showLoadingState() {
+        if (!mBinding.swipeRefresh.isRefreshing()) {
+            showProgressDialog(true);
         }
+        mBinding.layoutEmpty.getRoot().setVisibility(View.GONE);
+        mBinding.layoutError.getRoot().setVisibility(View.GONE);
+    }
+
+    private void showContentState() {
+        showProgressDialog(false);
+        mBinding.rcvData.setVisibility(View.VISIBLE);
+        mBinding.layoutEmpty.getRoot().setVisibility(View.GONE);
+        mBinding.layoutError.getRoot().setVisibility(View.GONE);
+    }
+
+    private void showEmptyState() {
+        showProgressDialog(false);
+        mBinding.rcvData.setVisibility(View.GONE);
+        mBinding.layoutEmpty.getRoot().setVisibility(View.VISIBLE);
+        mBinding.layoutError.getRoot().setVisibility(View.GONE);
+    }
+
+    private void showErrorState(String errorMessage) {
+        showProgressDialog(false);
+        mBinding.rcvData.setVisibility(View.GONE);
+        mBinding.layoutEmpty.getRoot().setVisibility(View.GONE);
+        mBinding.layoutError.getRoot().setVisibility(View.VISIBLE);
+        
+        // Setup retry button
+        mBinding.layoutError.btnRetry.setOnClickListener(v -> loadListBookFromAPI());
+        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
     }
 }

@@ -93,7 +93,7 @@ public class BookDetailActivity extends BaseActivity {
     }
 
     private void initView() {
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getInstance().getBookApiService();
         mListChapters = new ArrayList<>();
         
         // Setup WebView

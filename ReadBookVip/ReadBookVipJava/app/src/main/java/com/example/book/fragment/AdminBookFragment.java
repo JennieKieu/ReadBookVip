@@ -59,7 +59,7 @@ public class AdminBookFragment extends Fragment {
 
         initView();
         initListener();
-        apiService = ApiClient.getApiService();
+        apiService = ApiClient.getInstance().getBookApiService();
         loadListBook("");
 
         return binding.getRoot();

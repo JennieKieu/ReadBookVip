@@ -14,6 +14,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Chapter> Chapters { get; set; }
     public DbSet<BookHistory> BookHistories { get; set; }
     public DbSet<BookFavorite> BookFavorites { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +56,16 @@ public class ApplicationDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
             entity.Property(e => e.UserEmail).IsRequired().HasMaxLength(255);
             entity.HasIndex(e => new { e.BookId, e.UserEmail }).IsUnique();
+        });
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.HasMany(e => e.Books)
+                .WithOne()
+                .HasForeignKey(b => b.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

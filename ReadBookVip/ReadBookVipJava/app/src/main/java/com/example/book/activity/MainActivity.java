@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
+import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.core.view.GravityCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,6 +19,7 @@ import com.example.book.adapter.BookAdapter;
 import com.example.book.adapter.BookFeaturedAdapter;
 import com.example.book.adapter.CategoryHomeAdapter;
 import com.example.book.adapter.CategoryMenuAdapter;
+import com.example.book.api.ApiCallback;
 import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityMainBinding;
@@ -27,10 +28,8 @@ import com.example.book.model.Book;
 import com.example.book.model.Category;
 import com.example.book.model.User;
 import com.example.book.prefs.DataStoreManager;
+import com.example.book.repository.BookRepository;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +43,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private List<Category> mListCategoryHome;
     private List<Book> mListBook;
     private List<Book> mListBookFeatured;
-    private ValueEventListener mCategoryValueEventListener;
-    private ValueEventListener mBookValueEventListener;
     private final Handler mHandlerBanner = new Handler(Looper.getMainLooper());
     private final Runnable mRunnableBanner = new Runnable() {
         @Override
@@ -130,7 +127,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 category -> GlobalFunction.goToBookByCategory(MainActivity.this, category));
         mBinding.rcvCategory.setAdapter(mCategoryMenuAdapter);
 
-        loadListCategoryFromFirebase();
+        loadListCategoryFromAPI();
     }
 
     private void displayUserInformation() {
@@ -138,30 +135,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mBinding.tvUserEmail.setText(user.getEmail());
     }
 
+    /**
+     * Load categories from Firebase (KHÔNG thay đổi - giữ nguyên Firebase)
+     */
     @SuppressLint("NotifyDataSetChanged")
-    private void loadListCategoryFromFirebase() {
+    private void loadListCategoryFromAPI() {
         showProgressDialog(true);
-        mCategoryValueEventListener = new ValueEventListener() {
+        
+        // Vẫn dùng Firebase cho Categories
+        MyApplication.get(this).categoryDatabaseReference().addListenerForSingleValueEvent(new com.google.firebase.database.ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onDataChange(@androidx.annotation.NonNull com.google.firebase.database.DataSnapshot snapshot) {
                 resetListCategory();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                for (com.google.firebase.database.DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Category category = dataSnapshot.getValue(Category.class);
-                    if (category == null) return;
-                    mListCategory.add(0, category);
+                    if (category == null) continue;
+                    mListCategory.add(category);
                 }
                 if (mCategoryMenuAdapter != null) mCategoryMenuAdapter.notifyDataSetChanged();
                 displayListCategoryHome();
-
-                loadListBookFromFirebase();
+                
+                // After categories loaded, load books from API
+                loadListBookFromAPI();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                showProgressDialog(true);
+            public void onCancelled(@androidx.annotation.NonNull com.google.firebase.database.DatabaseError error) {
+                showProgressDialog(false);
+                Toast.makeText(MainActivity.this, "Failed to load categories", Toast.LENGTH_SHORT).show();
             }
-        };
-        MyApplication.get(this).categoryDatabaseReference().addValueEventListener(mCategoryValueEventListener);
+        });
     }
 
     private void displayListCategoryHome() {
@@ -215,28 +218,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
     }
 
-    private void loadListBookFromFirebase() {
-        mBookValueEventListener = new ValueEventListener() {
+    /**
+     * Load books from SQL API instead of Firebase
+     */
+    private void loadListBookFromAPI() {
+        BookRepository.getInstance().getAllBooks(new ApiCallback<List<Book>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onSuccess(List<Book> books) {
                 showProgressDialog(false);
                 resetListBook();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Book book = dataSnapshot.getValue(Book.class);
-                    if (book == null) return;
-                    mListBook.add(0, book);
-                }
+                mListBook.addAll(books);
+                
                 displayListBookFeatured();
                 displayNewBooks();
                 displayCountBookOfCategory();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onError(String errorMessage) {
                 showProgressDialog(false);
+                Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_SHORT).show();
             }
-        };
-        MyApplication.get(this).bookDatabaseReference().addValueEventListener(mBookValueEventListener);
+        });
     }
 
     @SuppressLint("NotifyDataSetChanged")
@@ -346,14 +349,4 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 .show();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mCategoryValueEventListener != null) {
-            MyApplication.get(this).categoryDatabaseReference().removeEventListener(mCategoryValueEventListener);
-        }
-        if (mBookValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mBookValueEventListener);
-        }
-    }
 }
