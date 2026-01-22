@@ -1,5 +1,8 @@
 package com.example.book.api;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -16,8 +19,10 @@ public class ApiClient {
     
     private static ApiClient instance;
     private final Retrofit retrofit;
+    private final Retrofit advertisementRetrofit;  // Separate Retrofit for Advertisement with @Expose
     private final ApiService apiService;
     private final BookApiService bookApiService;
+    private final AdvertisementApiService advertisementApiService;
     
     private ApiClient() {
         // Logging interceptor for debugging
@@ -31,14 +36,27 @@ public class ApiClient {
                 .writeTimeout(30, TimeUnit.SECONDS)
                 .build();
         
+        // Default Gson for other models
         retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         
+        // Gson with @Expose annotation for Advertisement model
+        Gson advertisementGson = new GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+        
+        advertisementRetrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create(advertisementGson))
+                .build();
+        
         apiService = retrofit.create(ApiService.class);
         bookApiService = retrofit.create(BookApiService.class);
+        advertisementApiService = advertisementRetrofit.create(AdvertisementApiService.class);
     }
     
     public static synchronized ApiClient getInstance() {
@@ -54,6 +72,10 @@ public class ApiClient {
     
     public BookApiService getBookApiService() {
         return bookApiService;
+    }
+    
+    public AdvertisementApiService getAdvertisementApiService() {
+        return advertisementApiService;
     }
     
     /**

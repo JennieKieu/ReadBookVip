@@ -44,32 +44,64 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="@string/label_ad_video"/>
+                android:text="Video Google Drive Link (*)"/>
 
-            <Button
-                android:id="@+id/btn_select_video"
+            <EditText
+                android:id="@+id/edt_video_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
-                android:text="Select Video"
-                android:textColor="@color/white"
-                android:background="@drawable/bg_button_enable_corner_10"/>
-
-            <TextView
-                android:id="@+id/tv_video_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/define_dimen_8"
-                android:text="No video selected"
+                android:background="@drawable/bg_white_corner_6_border_gray"
+                android:imeOptions="actionNext"
+                android:inputType="textUri"
+                android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
-                android:textSize="@dimen/text_size_14sp"/>
+                android:textSize="@dimen/text_size_14sp"
+                android:hint="Enter Google Drive video link (e.g., https://drive.google.com/file/d/...)"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_14sp"
                 android:layout_marginTop="@dimen/define_dimen_10"
-                android:text="@string/label_ad_thumbnail"/>
+                android:text="Click URL (optional)"/>
+
+            <EditText
+                android:id="@+id/edt_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_4"
+                android:background="@drawable/bg_white_corner_6_border_gray"
+                android:imeOptions="actionNext"
+                android:inputType="textUri"
+                android:padding="@dimen/define_dimen_12"
+                android:textColor="@color/colorPrimaryDark"
+                android:textSize="@dimen/text_size_14sp"
+                android:hint="URL to open when ad is clicked"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_14sp"
+                android:layout_marginTop="@dimen/define_dimen_10"
+                android:text="Thumbnail Image (optional)"/>
+
+            <Button
+                android:id="@+id/btn_select_thumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_4"
+                android:text="Select Image from Device"
+                android:textColor="@color/white"
+                android:background="@drawable/bg_button_enable_corner_10"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/define_dimen_8"
+                android:text="Or enter image URL:"
+                android:textSize="@dimen/text_size_12sp"
+                android:textColor="@color/colorPrimaryDark"/>
 
             <EditText
                 android:id="@+id/edt_thumbnail"
@@ -78,11 +110,21 @@
                 android:layout_marginTop="@dimen/define_dimen_4"
                 android:background="@drawable/bg_white_corner_6_border_gray"
                 android:imeOptions="actionNext"
-                android:inputType="text"
+                android:inputType="textUri"
                 android:padding="@dimen/define_dimen_12"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="@dimen/text_size_14sp"
-                android:hint="Optional: Thumbnail image URL"/>
+                android:hint="Enter image URL (e.g., https://example.com/image.jpg)"/>
+
+            <ImageView
+                android:id="@+id/img_thumbnail_preview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="@dimen/define_dimen_10"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:background="@drawable/bg_white_corner_6_border_gray"
+                tools:ignore="ContentDescription"/>
 
             <CheckBox
                 android:id="@+id/chb_active"
@@ -104,6 +146,3 @@
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
-
-
-

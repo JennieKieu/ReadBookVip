@@ -1,16 +1,43 @@
 package com.example.book.model;
 
+import com.example.book.utils.DateTimeDeserializer;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 public class Advertisement implements Serializable {
+    @Expose(serialize = false, deserialize = true)
     private long id;
+    
+    @Expose
     private String title;
-    private String videoUrl;  // URL từ Firebase Storage
-    private String thumbnailUrl;  // Ảnh thumbnail (optional)
-    private boolean isActive;  // Bật/tắt quảng cáo
+    
+    @Expose
+    private String videoUrl;  // Google Drive link to video
+    
+    @Expose
+    private String url;  // URL to open when ad is clicked
+    
+    @Expose
+    private String thumbnailUrl;  // Thumbnail image (optional)
+    
+    @Expose
+    private boolean isActive;  // Enable/disable advertisement
+    
+    @Expose(serialize = false, deserialize = true)
+    @JsonAdapter(DateTimeDeserializer.class)
+    @SerializedName("createdAt")
     private long createdAt;
+    
+    @Expose(serialize = false, deserialize = true)
+    @JsonAdapter(DateTimeDeserializer.class)
+    @SerializedName("updatedAt")
     private long updatedAt;
-    private int viewCount;  // Tổng số lượt xem (tính từ AdView)
+    
+    @Expose(serialize = false, deserialize = true)
+    private int viewCount;  // Total view count
 
     public Advertisement() {}
 
@@ -86,6 +113,14 @@ public class Advertisement implements Serializable {
 
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
 

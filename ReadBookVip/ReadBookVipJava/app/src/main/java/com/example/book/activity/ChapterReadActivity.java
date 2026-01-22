@@ -18,11 +18,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.book.R;
 import com.example.book.adapter.ChapterAdapter;
+import com.example.book.api.AdvertisementApiService;
 import com.example.book.api.ApiClient;
 import com.example.book.api.BookApiService;
 import com.example.book.constant.Constant;
+import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityChapterReadBinding;
 import com.example.book.listener.IOnChapterClickListener;
+import com.example.book.model.Advertisement;
 import com.example.book.model.Chapter;
 import com.example.book.widget.OverscrollScrollView;
 
@@ -39,9 +42,11 @@ public class ChapterReadActivity extends BaseActivity {
     private List<Chapter> mListChapters;
     private ChapterAdapter chapterAdapter;
     private BookApiService apiService;
+    private AdvertisementApiService advertisementApiService;
     private long bookId;
     private String bookTitle;
     private int currentChapterIndex = 0;
+    private int chapterChangeCount = 0; // Count chapter changes for ad display
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +55,7 @@ public class ChapterReadActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         apiService = ApiClient.getInstance().getBookApiService();
+        advertisementApiService = ApiClient.getInstance().getAdvertisementApiService();
         mListChapters = new ArrayList<>();
 
         loadDataIntent();
@@ -154,7 +160,22 @@ public class ChapterReadActivity extends BaseActivity {
                         animateIndicatorOut(binding.overscrollIndicatorTop);
                     }
                     // Smooth transition to previous chapter
-                    goToPrevChapterSmooth();
+                    if (currentChapterIndex > 0) {
+                        currentChapterIndex--;
+                        chapterAdapter.setCurrentChapterIndex(currentChapterIndex);
+                        displayChapter();
+                        chapterChangeCount++;
+                        checkAndShowAdvertisement();
+                        // Smooth scroll to bottom of previous chapter after it loads
+                        binding.webViewChapter.postDelayed(() -> {
+                            binding.scrollView.post(() -> {
+                                binding.scrollView.smoothScrollTo(0, binding.scrollView.getChildAt(0).getHeight());
+                                isChangingChapter = false;
+                            });
+                        }, 300);
+                    } else {
+                        isChangingChapter = false;
+                    }
                 }
             }
             
@@ -168,7 +189,19 @@ public class ChapterReadActivity extends BaseActivity {
                         animateIndicatorOut(binding.overscrollIndicatorBottom);
                     }
                     // Smooth transition to next chapter
-                    goToNextChapterSmooth();
+                    if (currentChapterIndex < mListChapters.size() - 1) {
+                        currentChapterIndex++;
+                        chapterAdapter.setCurrentChapterIndex(currentChapterIndex);
+                        displayChapter();
+                        chapterChangeCount++;
+                        checkAndShowAdvertisement();
+                        // Smooth scroll to top is already handled in displayChapter()
+                        binding.scrollView.postDelayed(() -> {
+                            isChangingChapter = false;
+                        }, 300);
+                    } else {
+                        isChangingChapter = false;
+                    }
                 }
             }
         });
@@ -202,8 +235,16 @@ public class ChapterReadActivity extends BaseActivity {
         binding.rcvChaptersDrawer.setAdapter(chapterAdapter);
 
         // Navigation buttons
-        binding.btnPrevChapter.setOnClickListener(v -> goToPrevChapter());
-        binding.btnNextChapter.setOnClickListener(v -> goToNextChapter());
+        binding.btnPrevChapter.setOnClickListener(v -> {
+            goToPrevChapter();
+            chapterChangeCount++;
+            checkAndShowAdvertisement();
+        });
+        binding.btnNextChapter.setOnClickListener(v -> {
+            goToNextChapter();
+            chapterChangeCount++;
+            checkAndShowAdvertisement();
+        });
     }
 
     private void loadChapters() {
@@ -296,23 +337,6 @@ public class ChapterReadActivity extends BaseActivity {
             displayChapter();
         }
     }
-    
-    private void goToPrevChapterSmooth() {
-        if (currentChapterIndex > 0) {
-            currentChapterIndex--;
-            chapterAdapter.setCurrentChapterIndex(currentChapterIndex);
-            displayChapter();
-            // Smooth scroll to bottom of previous chapter after it loads
-            binding.webViewChapter.postDelayed(() -> {
-                binding.scrollView.post(() -> {
-                    binding.scrollView.smoothScrollTo(0, binding.scrollView.getChildAt(0).getHeight());
-                    isChangingChapter = false;
-                });
-            }, 300);
-        } else {
-            isChangingChapter = false;
-        }
-    }
 
     private void goToNextChapter() {
         if (currentChapterIndex < mListChapters.size() - 1) {
@@ -322,18 +346,35 @@ public class ChapterReadActivity extends BaseActivity {
         }
     }
     
-    private void goToNextChapterSmooth() {
-        if (currentChapterIndex < mListChapters.size() - 1) {
-            currentChapterIndex++;
-            chapterAdapter.setCurrentChapterIndex(currentChapterIndex);
-            displayChapter();
-            // Smooth scroll to top is already handled in displayChapter()
-            binding.scrollView.postDelayed(() -> {
-                isChangingChapter = false;
-            }, 300);
-        } else {
-            isChangingChapter = false;
+    private void checkAndShowAdvertisement() {
+        // Show advertisement every 5 chapter changes
+        if (chapterChangeCount > 0 && chapterChangeCount % 5 == 0) {
+            loadAndShowAdvertisement();
         }
+    }
+    
+    private void loadAndShowAdvertisement() {
+        advertisementApiService.getActiveAdvertisements().enqueue(new Callback<List<Advertisement>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Advertisement>> call, @NonNull Response<List<Advertisement>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    // Select random advertisement
+                    List<Advertisement> activeAds = response.body();
+                    int randomIndex = (int) (Math.random() * activeAds.size());
+                    Advertisement selectedAd = activeAds.get(randomIndex);
+                    
+                    // Show advertisement
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable(Constant.OBJECT_ADVERTISEMENT, selectedAd);
+                    GlobalFunction.startActivity(ChapterReadActivity.this, AdvertisementActivity.class, bundle);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Advertisement>> call, @NonNull Throwable t) {
+                // Silent fail - don't interrupt reading
+            }
+        });
     }
 
     @Override

@@ -17,37 +17,41 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
+import com.example.book.activity.BaseActivity;
 import com.example.book.activity.admin.AdminAddAdvertisementActivity;
 import com.example.book.adapter.admin.AdminAdvertisementAdapter;
+import com.example.book.api.AdvertisementApiService;
+import com.example.book.api.ApiClient;
 import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.FragmentAdminAdvertisementListBinding;
 import com.example.book.model.Advertisement;
-import com.example.book.utils.StringUtil;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AdminAdvertisementListFragment extends Fragment {
 
     private FragmentAdminAdvertisementListBinding binding;
     private List<Advertisement> mListAdvertisement;
     private AdminAdvertisementAdapter mAdapter;
-    private ChildEventListener mChildEventListener;
+    private AdvertisementApiService apiService;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentAdminAdvertisementListBinding.inflate(inflater, container, false);
 
+        apiService = ApiClient.getInstance().getAdvertisementApiService();
+        
         initView();
         initListener();
-        loadListAdvertisement("");
+        loadListAdvertisement();
 
         return binding.getRoot();
     }
@@ -134,11 +138,31 @@ public class AdminAdvertisementListFragment extends Fragment {
                 .setMessage(getString(R.string.msg_confirm_delete))
                 .setPositiveButton(getString(R.string.action_ok), (dialogInterface, i) -> {
                     if (getActivity() == null) return;
-                    MyApplication.get(getActivity()).advertisementDatabaseReference()
-                            .child(String.valueOf(advertisement.getId())).removeValue((error, ref) ->
-                                    Toast.makeText(getActivity(),
-                                            getString(R.string.msg_ad_delete_success),
-                                            Toast.LENGTH_SHORT).show());
+                    showProgressDialog(true);
+                    apiService.deleteAdvertisement(advertisement.getId()).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
+                            showProgressDialog(false);
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getActivity(),
+                                        getString(R.string.msg_ad_delete_success),
+                                        Toast.LENGTH_SHORT).show();
+                                loadListAdvertisement();
+                            } else {
+                                Toast.makeText(getActivity(),
+                                        "Error: " + response.message(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
+                            showProgressDialog(false);
+                            Toast.makeText(getActivity(),
+                                    "Connection error: " + t.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 })
                 .setNegativeButton(getString(R.string.action_cancel), null)
                 .show();
@@ -146,100 +170,79 @@ public class AdminAdvertisementListFragment extends Fragment {
 
     private void toggleActive(Advertisement advertisement) {
         if (getActivity() == null) return;
-        MyApplication.get(getActivity()).advertisementDatabaseReference()
-                .child(String.valueOf(advertisement.getId()))
-                .child("isActive")
-                .setValue(!advertisement.isActive());
+        
+        Advertisement updateAd = new Advertisement();
+        updateAd.setTitle(advertisement.getTitle());
+        updateAd.setVideoUrl(advertisement.getVideoUrl());
+        updateAd.setUrl(advertisement.getUrl());
+        updateAd.setThumbnailUrl(advertisement.getThumbnailUrl());
+        updateAd.setActive(!advertisement.isActive());
+        
+        apiService.updateAdvertisement(advertisement.getId(), updateAd).enqueue(new Callback<Advertisement>() {
+            @Override
+            public void onResponse(@NonNull Call<Advertisement> call, @NonNull Response<Advertisement> response) {
+                if (response.isSuccessful()) {
+                    loadListAdvertisement();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Advertisement> call, @NonNull Throwable t) {
+                // Silent fail
+            }
+        });
     }
 
     private void searchAdvertisement() {
         String strKey = binding.edtSearchName.getText().toString().trim();
-        resetListAdvertisement();
-        if (getActivity() != null) {
-            MyApplication.get(getActivity()).advertisementDatabaseReference()
-                    .removeEventListener(mChildEventListener);
-        }
-        loadListAdvertisement(strKey);
+        loadListAdvertisement();
         GlobalFunction.hideSoftKeyboard(getActivity());
     }
 
-    private void resetListAdvertisement() {
-        if (mListAdvertisement != null) {
-            mListAdvertisement.clear();
-        } else {
-            mListAdvertisement = new ArrayList<>();
-        }
-    }
-
-    public void loadListAdvertisement(String keyword) {
+    public void loadListAdvertisement() {
         if (getActivity() == null) return;
-        mChildEventListener = new ChildEventListener() {
+        
+        showProgressDialog(true);
+        apiService.getAllAdvertisements().enqueue(new Callback<List<Advertisement>>() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
-                Advertisement advertisement = dataSnapshot.getValue(Advertisement.class);
-                if (advertisement == null || mListAdvertisement == null) return;
-                if (StringUtil.isEmpty(keyword)) {
-                    mListAdvertisement.add(0, advertisement);
+            public void onResponse(@NonNull Call<List<Advertisement>> call, @NonNull Response<List<Advertisement>> response) {
+                showProgressDialog(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    mListAdvertisement.clear();
+                    String keyword = binding.edtSearchName.getText().toString().trim();
+                    
+                    for (Advertisement ad : response.body()) {
+                        if (keyword.isEmpty() || 
+                            GlobalFunction.getTextSearch(ad.getTitle()).toLowerCase().trim()
+                                .contains(GlobalFunction.getTextSearch(keyword).toLowerCase().trim())) {
+                            mListAdvertisement.add(ad);
+                        }
+                    }
+                    
+                    if (mAdapter != null) {
+                        mAdapter.notifyDataSetChanged();
+                    }
                 } else {
-                    if (GlobalFunction.getTextSearch(advertisement.getTitle()).toLowerCase().trim()
-                            .contains(GlobalFunction.getTextSearch(keyword).toLowerCase().trim())) {
-                        mListAdvertisement.add(0, advertisement);
-                    }
+                    Toast.makeText(getActivity(),
+                            "Error loading advertisements",
+                            Toast.LENGTH_SHORT).show();
                 }
-                if (mAdapter != null) mAdapter.notifyDataSetChanged();
-            }
-
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
-                Advertisement advertisement = dataSnapshot.getValue(Advertisement.class);
-                if (advertisement == null || mListAdvertisement == null || mListAdvertisement.isEmpty()) return;
-                for (int i = 0; i < mListAdvertisement.size(); i++) {
-                    if (advertisement.getId() == mListAdvertisement.get(i).getId()) {
-                        mListAdvertisement.set(i, advertisement);
-                        break;
-                    }
-                }
-                if (mAdapter != null) mAdapter.notifyDataSetChanged();
-            }
-
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                Advertisement advertisement = dataSnapshot.getValue(Advertisement.class);
-                if (advertisement == null || mListAdvertisement == null || mListAdvertisement.isEmpty()) return;
-                for (Advertisement ad : mListAdvertisement) {
-                    if (advertisement.getId() == ad.getId()) {
-                        mListAdvertisement.remove(ad);
-                        break;
-                    }
-                }
-                if (mAdapter != null) mAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
+            public void onFailure(@NonNull Call<List<Advertisement>> call, @NonNull Throwable t) {
+                showProgressDialog(false);
+                Toast.makeText(getActivity(),
+                        "Connection error: " + t.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        };
-        MyApplication.get(getActivity()).advertisementDatabaseReference()
-                .addChildEventListener(mChildEventListener);
+        });
     }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        if (getActivity() != null && mChildEventListener != null) {
-            MyApplication.get(getActivity()).advertisementDatabaseReference()
-                    .removeEventListener(mChildEventListener);
+    
+    private void showProgressDialog(boolean show) {
+        if (getActivity() != null && getActivity() instanceof BaseActivity) {
+            ((BaseActivity) getActivity()).showProgressDialog(show);
         }
     }
 }
-
-
-
-

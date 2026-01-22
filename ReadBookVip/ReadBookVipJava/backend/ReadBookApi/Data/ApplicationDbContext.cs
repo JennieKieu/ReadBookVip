@@ -15,6 +15,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<BookHistory> BookHistories { get; set; }
     public DbSet<BookFavorite> BookFavorites { get; set; }
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Advertisement> Advertisements { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -66,6 +67,15 @@ public class ApplicationDbContext : DbContext
                 .WithOne()
                 .HasForeignKey(b => b.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Advertisement>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.VideoUrl).IsRequired().HasMaxLength(1000);
+            entity.Property(e => e.Url).HasMaxLength(1000);
+            entity.Property(e => e.ThumbnailUrl).HasMaxLength(1000);
         });
     }
 }

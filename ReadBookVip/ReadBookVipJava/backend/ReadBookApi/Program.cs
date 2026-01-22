@@ -30,6 +30,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add Services
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IAdvertisementService, AdvertisementService>();
 
 var app = builder.Build();
 

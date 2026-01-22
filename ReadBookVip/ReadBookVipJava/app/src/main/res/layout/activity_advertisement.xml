@@ -9,40 +9,20 @@
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:use_controller="true"
+        app:use_controller="false"
         app:show_buffering="when_playing" />
 
-    <LinearLayout
-        android:id="@+id/layout_controls"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:orientation="horizontal"
-        android:padding="@dimen/define_dimen_16"
-        android:gravity="center"
-        android:background="#80000000">
-
-        <Button
-            android:id="@+id/btn_skip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_skip_ad"
-            android:textColor="@color/white"
-            android:background="@drawable/bg_button_enable_corner_10"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/btn_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/define_dimen_10"
-            android:text="@string/action_close_ad"
-            android:textColor="@color/white"
-            android:background="@drawable/bg_button_enable_corner_10"
-            android:visibility="gone" />
-    </LinearLayout>
+    <ImageButton
+        android:id="@+id/btn_close"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="@dimen/define_dimen_16"
+        android:src="@drawable/ic_close_white"
+        android:background="@drawable/bg_close_button"
+        android:contentDescription="@string/action_close"
+        android:visibility="gone"
+        android:scaleType="fitCenter" />
 
 </RelativeLayout>
-
-
-

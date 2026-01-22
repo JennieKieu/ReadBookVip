@@ -1,5 +1,6 @@
 package com.example.book.adapter.admin;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
@@ -7,6 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.book.R;
+import com.example.book.activity.AdvertisementActivity;
+import com.example.book.constant.Constant;
+import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ItemAdminAdvertisementBinding;
 import com.example.book.model.Advertisement;
 import com.example.book.utils.GlideUtils;
@@ -50,6 +54,13 @@ public class AdminAdvertisementAdapter extends RecyclerView.Adapter<AdminAdverti
             holder.mBinding.imgThumbnail.setImageResource(com.example.book.R.drawable.img_no_image);
         }
 
+        // Show/hide play overlay based on video URL availability
+        if (advertisement.getVideoUrl() != null && !advertisement.getVideoUrl().trim().isEmpty()) {
+            holder.mBinding.imgPlayOverlay.setVisibility(android.view.View.VISIBLE);
+        } else {
+            holder.mBinding.imgPlayOverlay.setVisibility(android.view.View.GONE);
+        }
+
         holder.mBinding.tvTitle.setText(advertisement.getTitle());
         
         // Status
@@ -64,12 +75,21 @@ public class AdminAdvertisementAdapter extends RecyclerView.Adapter<AdminAdverti
         // View count
         holder.mBinding.tvViewCount.setText(String.valueOf(advertisement.getViewCount()));
 
-        // Toggle active icon
+        // Toggle active icon - use on/off icons instead of favorite
         if (advertisement.isActive()) {
-            holder.mBinding.imgToggleActive.setImageResource(R.drawable.ic_favorite);
+            holder.mBinding.imgToggleActive.setImageResource(R.drawable.ic_toggle_on);
         } else {
-            holder.mBinding.imgToggleActive.setImageResource(R.drawable.ic_unfavorite);
+            holder.mBinding.imgToggleActive.setImageResource(R.drawable.ic_toggle_off);
         }
+
+        // Click on thumbnail to preview video
+        holder.mBinding.imgThumbnail.setOnClickListener(v -> {
+            if (advertisement.getVideoUrl() != null && !advertisement.getVideoUrl().trim().isEmpty()) {
+                android.os.Bundle bundle = new android.os.Bundle();
+                bundle.putSerializable(Constant.OBJECT_ADVERTISEMENT, advertisement);
+                GlobalFunction.startActivity(holder.mBinding.getRoot().getContext(), AdvertisementActivity.class, bundle);
+            }
+        });
 
         holder.mBinding.imgEdit.setOnClickListener(v -> mListener.onClickUpdate(advertisement));
         holder.mBinding.imgDelete.setOnClickListener(v -> mListener.onClickDelete(advertisement));

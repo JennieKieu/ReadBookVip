@@ -32,6 +32,20 @@
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
                     android:src="@drawable/img_no_image"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground"
+                    tools:ignore="ContentDescription" />
+
+                <ImageView
+                    android:id="@+id/img_play_overlay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:src="@android:drawable/ic_media_play"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:padding="@dimen/define_dimen_5"
+                    android:alpha="0.8"
                     tools:ignore="ContentDescription" />
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
@@ -136,6 +150,3 @@
     </RelativeLayout>
 
 </androidx.cardview.widget.CardView>
-
-
-
