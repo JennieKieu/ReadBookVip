@@ -245,4 +245,11 @@ public class AdminAdvertisementListFragment extends Fragment {
             ((BaseActivity) getActivity()).showProgressDialog(show);
         }
     }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload list when fragment resumes (to show newly added/updated advertisements)
+        loadListAdvertisement();
+    }
 }

@@ -85,20 +85,34 @@ public class AdminAddAdvertisementActivity extends BaseActivity {
                 String thumbnailUrl = mAdvertisement.getThumbnailUrl();
                 // Check if it's base64 or URL
                 if (thumbnailUrl.startsWith("data:image")) {
-                    // Base64 image - show preview
+                    // Base64 image - show upload section with preview
+                    binding.rbUploadImage.setChecked(true);
+                    binding.layoutUploadImage.setVisibility(View.VISIBLE);
+                    binding.layoutEnterUrl.setVisibility(View.GONE);
                     binding.imgThumbnailPreview.setVisibility(View.VISIBLE);
                     com.example.book.utils.ImageUtils.loadImage(binding.imgThumbnailPreview, thumbnailUrl);
                     binding.edtThumbnail.setText("");
                 } else {
-                    // URL - show in text field
+                    // URL - show URL section
+                    binding.rbEnterUrl.setChecked(true);
+                    binding.layoutUploadImage.setVisibility(View.GONE);
+                    binding.layoutEnterUrl.setVisibility(View.VISIBLE);
                     binding.edtThumbnail.setText(thumbnailUrl);
-                    binding.imgThumbnailPreview.setVisibility(View.GONE);
                 }
+            } else {
+                // No thumbnail - default to upload
+                binding.rbUploadImage.setChecked(true);
+                binding.layoutUploadImage.setVisibility(View.VISIBLE);
+                binding.layoutEnterUrl.setVisibility(View.GONE);
             }
             binding.chbActive.setChecked(mAdvertisement.isActive());
         } else {
             binding.layoutToolbar.tvToolbarTitle.setText(getString(R.string.label_add_advertisement));
             binding.btnAddOrEdit.setText(getString(R.string.action_add));
+            // Default to upload image
+            binding.rbUploadImage.setChecked(true);
+            binding.layoutUploadImage.setVisibility(View.VISIBLE);
+            binding.layoutEnterUrl.setVisibility(View.GONE);
         }
     }
 
@@ -123,9 +137,6 @@ public class AdminAddAdvertisementActivity extends BaseActivity {
                                     .load(thumbnailImageUri)
                                     .into(binding.imgThumbnailPreview);
                             
-                            // Clear URL field since we're using selected image
-                            binding.edtThumbnail.setText("");
-                            
                             Toast.makeText(this, "Image selected. Click Add/Update to save.", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -135,6 +146,28 @@ public class AdminAddAdvertisementActivity extends BaseActivity {
     private void initListener() {
         binding.btnAddOrEdit.setOnClickListener(v -> addOrEditAdvertisement());
         binding.btnSelectThumbnail.setOnClickListener(v -> selectThumbnailImage());
+        
+        // RadioButton listeners to switch between upload and URL
+        binding.rbUploadImage.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                binding.layoutUploadImage.setVisibility(View.VISIBLE);
+                binding.layoutEnterUrl.setVisibility(View.GONE);
+                // Clear URL field when switching to upload
+                binding.edtThumbnail.setText("");
+                // Clear selected image when switching to URL
+                thumbnailImageUri = null;
+            }
+        });
+        
+        binding.rbEnterUrl.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                binding.layoutUploadImage.setVisibility(View.GONE);
+                binding.layoutEnterUrl.setVisibility(View.VISIBLE);
+                // Clear selected image when switching to URL
+                thumbnailImageUri = null;
+                binding.imgThumbnailPreview.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void selectThumbnailImage() {
@@ -161,17 +194,28 @@ public class AdminAddAdvertisementActivity extends BaseActivity {
             return;
         }
 
-        // If image is selected, convert to base64, otherwise use URL
-        if (thumbnailImageUri != null) {
-            convertThumbnailToBase64AndSave(strTitle, strVideoUrl, strUrl);
-        } else {
-            // Use URL from text field or existing base64
-            String thumbnail = strThumbnail.isEmpty() ? null : strThumbnail;
-            if (isUpdate) {
-                updateAdvertisement(strTitle, strVideoUrl, strUrl, thumbnail);
+        // Check which option is selected
+        String thumbnail = null;
+        if (binding.rbUploadImage.isChecked()) {
+            // Upload image option selected
+            if (thumbnailImageUri != null) {
+                // Convert to base64
+                convertThumbnailToBase64AndSave(strTitle, strVideoUrl, strUrl);
+                return; // Exit early, will be handled in callback
             } else {
-                createAdvertisement(strTitle, strVideoUrl, strUrl, thumbnail);
+                // No image selected, use null (optional field)
+                thumbnail = null;
             }
+        } else {
+            // Enter URL option selected
+            thumbnail = strThumbnail.isEmpty() ? null : strThumbnail;
+        }
+        
+        // Save with thumbnail (URL or null)
+        if (isUpdate) {
+            updateAdvertisement(strTitle, strVideoUrl, strUrl, thumbnail);
+        } else {
+            createAdvertisement(strTitle, strVideoUrl, strUrl, thumbnail);
         }
     }
 
@@ -220,17 +264,32 @@ public class AdminAddAdvertisementActivity extends BaseActivity {
             throw new Exception("Cannot decode image");
         }
 
-        // Resize image to reduce size
-        if (bitmap.getWidth() > maxWidth) {
-            int newHeight = (int) ((float) maxWidth / bitmap.getWidth() * bitmap.getHeight());
-            bitmap = Bitmap.createScaledBitmap(bitmap, maxWidth, newHeight, true);
+        // Resize image to reduce size (smaller for base64 to fit in database)
+        int targetWidth = Math.min(maxWidth, 400); // Max 400px width for base64
+        if (bitmap.getWidth() > targetWidth) {
+            int newHeight = (int) ((float) targetWidth / bitmap.getWidth() * bitmap.getHeight());
+            bitmap = Bitmap.createScaledBitmap(bitmap, targetWidth, newHeight, true);
         }
 
-        // Convert to base64
+        // Convert to base64 with lower quality to reduce size
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream); // 80% quality
+        int quality = 70; // Lower quality (70%) to reduce base64 size
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
+        
+        // Check size - if still too large, reduce quality further
+        int maxBase64Length = 800; // Leave some room for "data:image/jpeg;base64," prefix
+        while (byteArray.length > maxBase64Length && quality > 30) {
+            quality -= 10;
+            byteArrayOutputStream.reset();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, byteArrayOutputStream);
+            byteArray = byteArrayOutputStream.toByteArray();
+        }
+        
         String base64 = "data:image/jpeg;base64," + Base64.encodeToString(byteArray, Base64.NO_WRAP);
+        
+        // Log size for debugging
+        android.util.Log.d("AdminAddAd", "Base64 length: " + base64.length());
         
         byteArrayOutputStream.close();
         return base64;

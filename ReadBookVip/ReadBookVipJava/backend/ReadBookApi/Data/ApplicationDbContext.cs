@@ -75,7 +75,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.Title).IsRequired().HasMaxLength(500);
             entity.Property(e => e.VideoUrl).IsRequired().HasMaxLength(1000);
             entity.Property(e => e.Url).HasMaxLength(1000);
-            entity.Property(e => e.ThumbnailUrl).HasMaxLength(1000);
+            entity.Property(e => e.ThumbnailUrl); // No max length - supports NVARCHAR(MAX) for base64 images
         });
     }
 }

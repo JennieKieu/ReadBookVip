@@ -86,45 +86,78 @@
                 android:layout_marginTop="@dimen/define_dimen_10"
                 android:text="Thumbnail Image (optional)"/>
 
-            <Button
-                android:id="@+id/btn_select_thumbnail"
+            <RadioGroup
+                android:id="@+id/rg_thumbnail_option"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_4"
-                android:text="Select Image from Device"
-                android:textColor="@color/white"
-                android:background="@drawable/bg_button_enable_corner_10"/>
+                android:orientation="horizontal">
 
-            <TextView
+                <RadioButton
+                    android:id="@+id/rb_upload_image"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Upload Image"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/rb_enter_url"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Enter URL"/>
+            </RadioGroup>
+
+            <!-- Upload Image Section -->
+            <LinearLayout
+                android:id="@+id/layout_upload_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_8"
-                android:text="Or enter image URL:"
-                android:textSize="@dimen/text_size_12sp"
-                android:textColor="@color/colorPrimaryDark"/>
+                android:orientation="vertical"
+                android:visibility="visible">
 
-            <EditText
-                android:id="@+id/edt_thumbnail"
+                <Button
+                    android:id="@+id/btn_select_thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Image from Device"
+                    android:textColor="@color/white"
+                    android:background="@drawable/bg_button_enable_corner_10"/>
+
+                <ImageView
+                    android:id="@+id/img_thumbnail_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="@dimen/define_dimen_10"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:background="@drawable/bg_white_corner_6_border_gray"
+                    tools:ignore="ContentDescription"/>
+            </LinearLayout>
+
+            <!-- Enter URL Section -->
+            <LinearLayout
+                android:id="@+id/layout_enter_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/define_dimen_4"
-                android:background="@drawable/bg_white_corner_6_border_gray"
-                android:imeOptions="actionNext"
-                android:inputType="textUri"
-                android:padding="@dimen/define_dimen_12"
-                android:textColor="@color/colorPrimaryDark"
-                android:textSize="@dimen/text_size_14sp"
-                android:hint="Enter image URL (e.g., https://example.com/image.jpg)"/>
+                android:layout_marginTop="@dimen/define_dimen_8"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/img_thumbnail_preview"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_marginTop="@dimen/define_dimen_10"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                android:background="@drawable/bg_white_corner_6_border_gray"
-                tools:ignore="ContentDescription"/>
+                <EditText
+                    android:id="@+id/edt_thumbnail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_white_corner_6_border_gray"
+                    android:imeOptions="actionNext"
+                    android:inputType="textUri"
+                    android:padding="@dimen/define_dimen_12"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textSize="@dimen/text_size_14sp"
+                    android:hint="Enter image URL (e.g., https://example.com/image.jpg)"/>
+            </LinearLayout>
 
             <CheckBox
                 android:id="@+id/chb_active"
