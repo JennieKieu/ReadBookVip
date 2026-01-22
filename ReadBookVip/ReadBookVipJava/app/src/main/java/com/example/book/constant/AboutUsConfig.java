@@ -1,18 +1,17 @@
 package com.example.book.constant;
 
 public interface AboutUsConfig {
-    String ABOUT_US_TITLE = "TinCoder";
-    String ABOUT_US_CONTENT = "Specialized in providing Android Java & Kotlin source code. " +
-            "Committed to high quality products and best services";
-    String ABOUT_US_SLOGAN = "Specialized in Android Java & Kotlin Source Code";
-    String ABOUT_US_WEBSITE_TITLE = "Website TinCoder";
+    String ABOUT_US_TITLE = "Welcome To App Read Book Vip";
+    String ABOUT_US_CONTENT = "Read Book Vip is a app that allows you to read books for free.";
+    String ABOUT_US_SLOGAN = "The best app to read books";
+    String ABOUT_US_WEBSITE_TITLE = "Website Read Book Vip";
 
-    String PAGE_FACEBOOK = "fb://page/tincoder";
-    String LINK_FACEBOOK = "https://www.facebook.com/tincoder";
-    String LINK_YOUTUBE = "https://www.youtube.com/channel/UCu3DXfXYgygIYXN8TduNcNQ";
-    String PHONE_NUMBER = "+84392229676";
-    String GMAIL = "mixproduction29932@gmail.com";
-    String SKYPE_ID = "dangtin29932";
-    String ZALO_LINK = "https://zalo.me/0392229676";
-    String WEBSITE = "https://alabaster-drop-b52.notion.site/TinCoder-Full-Source-Code-Android-c1f9d9d224004932823b6d5061c80dbc";
+    String PAGE_FACEBOOK = "";
+    String LINK_FACEBOOK = "";
+    String LINK_YOUTUBE = "";
+    String PHONE_NUMBER = "";
+    String GMAIL = "readbookvip@gmail.com";
+    String SKYPE_ID = "";
+    String ZALO_LINK = "";
+    String WEBSITE = "";
 }
