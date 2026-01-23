@@ -28,7 +28,10 @@
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="@dimen/define_dimen_5"
             android:layout_marginEnd="@dimen/define_dimen_5"
-            android:src="@drawable/ic_unfavorite" />
+            android:src="@drawable/ic_unfavorite"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless" />
     </RelativeLayout>
 
     <TextView
@@ -50,4 +53,3 @@
         android:textColor="@color/colorPrimaryDark"
         android:textSize="@dimen/text_size_14sp" />
 </LinearLayout>
-

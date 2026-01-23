@@ -189,24 +189,35 @@ public class GlobalFunction {
     }
 
     public static void onClickFavoriteBook(Context context, Book book, boolean isFavorite) {
-        if (context == null) return;
+        if (context == null || book == null) return;
+        // Use API instead of Firebase
+        BookApiService apiService = ApiClient.getInstance().getBookApiService();
+        String userEmail = DataStoreManager.getUser().getEmail();
+        
         if (isFavorite) {
-            String userEmail = DataStoreManager.getUser().getEmail();
-            UserInfo userInfo = new UserInfo(System.currentTimeMillis(), userEmail, 0);
-            MyApplication.get(context).bookDatabaseReference()
-                    .child(String.valueOf(book.getId()))
-                    .child("favorite")
-                    .child(String.valueOf(userInfo.getId()))
-                    .setValue(userInfo);
+            apiService.addFavorite(book.getId(), userEmail).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    // Favorite added
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    // Silent fail
+                }
+            });
         } else {
-            UserInfo userInfo = getUserFavoriteBook(book);
-            if (userInfo != null) {
-                MyApplication.get(context).bookDatabaseReference()
-                        .child(String.valueOf(book.getId()))
-                        .child("favorite")
-                        .child(String.valueOf(userInfo.getId()))
-                        .removeValue();
-            }
+            apiService.removeFavorite(book.getId(), userEmail).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    // Favorite removed
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    // Silent fail
+                }
+            });
         }
     }
 

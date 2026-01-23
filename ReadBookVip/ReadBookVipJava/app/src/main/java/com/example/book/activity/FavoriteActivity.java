@@ -6,27 +6,33 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.adapter.BookAdapter;
+import com.example.book.api.ApiClient;
+import com.example.book.api.BookApiService;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityFavoriteBinding;
 import com.example.book.listener.IOnClickBookListener;
 import com.example.book.model.Book;
 import com.example.book.model.Category;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
+import com.example.book.prefs.DataStoreManager;
+import com.example.book.repository.BookRepository;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class FavoriteActivity extends BaseActivity {
 
     private ActivityFavoriteBinding mBinding;
     private List<Book> mListBook;
     private BookAdapter mBookAdapter;
-    private ValueEventListener mValueEventListener;
+    private BookApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +55,7 @@ public class FavoriteActivity extends BaseActivity {
         mBinding.rcvData.setLayoutManager(gridLayoutManager);
 
         mListBook = new ArrayList<>();
+        apiService = ApiClient.getInstance().getBookApiService();
         mBookAdapter = new BookAdapter(mListBook, new IOnClickBookListener() {
             @Override
             public void onClickItemBook(Book book) {
@@ -63,6 +70,8 @@ public class FavoriteActivity extends BaseActivity {
             @Override
             public void onClickFavoriteBook(Book book, boolean favorite) {
                 GlobalFunction.onClickFavoriteBook(FavoriteActivity.this, book, favorite);
+                // Reload favorite list after change
+                loadDataFavorite();
             }
         });
         mBinding.rcvData.setAdapter(mBookAdapter);
@@ -70,27 +79,59 @@ public class FavoriteActivity extends BaseActivity {
 
     @SuppressLint("NotifyDataSetChanged")
     private void loadDataFavorite() {
-        mValueEventListener = new ValueEventListener() {
+        if (DataStoreManager.getUser() == null) return;
+        String userEmail = DataStoreManager.getUser().getEmail();
+        if (userEmail == null || userEmail.isEmpty()) return;
+        
+        // First, get favorite book IDs from API
+        apiService.getFavorites(userEmail).enqueue(new Callback<List<Long>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                resetListData();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Book book = dataSnapshot.getValue(Book.class);
-                    if (book == null) return;
-                    if (GlobalFunction.isFavoriteBook(book)) {
-                        mListBook.add(0, book);
-                    }
+            public void onResponse(@NonNull Call<List<Long>> call, @NonNull Response<List<Long>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Set<Long> favoriteBookIds = new HashSet<>(response.body());
+                    // Then load all books and filter by favorite IDs
+                    loadAllBooksAndFilter(favoriteBookIds);
+                } else {
+                    resetListData();
+                    if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
                 }
-                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onFailure(@NonNull Call<List<Long>> call, @NonNull Throwable t) {
                 GlobalFunction.showToastMessage(FavoriteActivity.this,
                         getString(R.string.msg_get_date_error));
+                resetListData();
+                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
             }
-        };
-        MyApplication.get(this).bookDatabaseReference().addValueEventListener(mValueEventListener);
+        });
+    }
+    
+    private void loadAllBooksAndFilter(Set<Long> favoriteBookIds) {
+        BookRepository.getInstance().getAllBooks(new com.example.book.api.ApiCallback<List<Book>>() {
+            @Override
+            public void onSuccess(List<Book> books) {
+                resetListData();
+                // Filter books that are in favorite list
+                for (Book book : books) {
+                    if (favoriteBookIds.contains(book.getId())) {
+                        mListBook.add(book);
+                    }
+                }
+                if (mBookAdapter != null) {
+                    mBookAdapter.notifyDataSetChanged();
+                    // Refresh favorite list in adapter
+                    mBookAdapter.refreshFavoriteList();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                GlobalFunction.showToastMessage(FavoriteActivity.this, errorMessage);
+                resetListData();
+                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
+            }
+        });
     }
 
     private void resetListData() {
@@ -102,10 +143,9 @@ public class FavoriteActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mValueEventListener);
-        }
+    protected void onResume() {
+        super.onResume();
+        // Reload favorite list when returning to this activity
+        loadDataFavorite();
     }
 }

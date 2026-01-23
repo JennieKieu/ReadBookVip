@@ -73,7 +73,8 @@ public class AdminBookOfCategoryActivity extends BaseActivity {
 
             @Override
             public void onClickDetailBook(Book book) {
-                goToBookDetail(book);
+                // Click vào sách sẽ mở màn hình chỉnh sửa
+                onClickEditBook(book);
             }
         });
         binding.rcvBook.setAdapter(mAdminBookAdapter);

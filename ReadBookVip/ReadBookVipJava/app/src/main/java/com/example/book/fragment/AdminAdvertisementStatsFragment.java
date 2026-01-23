@@ -12,29 +12,30 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.adapter.admin.AdminAdvertisementStatsAdapter;
+import com.example.book.api.AdvertisementApiService;
+import com.example.book.api.ApiClient;
 import com.example.book.databinding.FragmentAdminAdvertisementStatsBinding;
-import com.example.book.model.AdView;
 import com.example.book.model.Advertisement;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AdminAdvertisementStatsFragment extends Fragment {
 
     private FragmentAdminAdvertisementStatsBinding binding;
     private List<Advertisement> mListAdvertisement;
     private Map<Long, Integer> mViewCountMap;  // advertisementId -> viewCount
-    private Map<Long, Integer> mCompletedCountMap;  // advertisementId -> completedCount
+    private Map<Long, Integer> mCompletedCountMap;  // advertisementId -> completedCount (not available from API, keep for compatibility)
     private AdminAdvertisementStatsAdapter mAdapter;
+    private AdvertisementApiService apiService;
 
     @Nullable
     @Override
@@ -55,117 +56,57 @@ public class AdminAdvertisementStatsFragment extends Fragment {
         mCompletedCountMap = new HashMap<>();
         mAdapter = new AdminAdvertisementStatsAdapter(mListAdvertisement, mViewCountMap, mCompletedCountMap);
         binding.rcvAdvertisementStats.setAdapter(mAdapter);
+        apiService = ApiClient.getInstance().getAdvertisementApiService();
     }
 
     private void loadStatistics() {
         if (getActivity() == null) return;
 
-        // Load advertisements
-        MyApplication.get(getActivity()).advertisementDatabaseReference()
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        mListAdvertisement.clear();
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Advertisement advertisement = dataSnapshot.getValue(Advertisement.class);
-                            if (advertisement != null) {
-                                mListAdvertisement.add(advertisement);
-                            }
-                        }
-                        // Load views after loading advertisements
-                        loadAdViews();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                    }
-                });
-    }
-
-    private void loadAdViews() {
-        if (getActivity() == null) return;
-
-        MyApplication.get(getActivity()).advertisementViewDatabaseReference()
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        mViewCountMap.clear();
-                        mCompletedCountMap.clear();
-
-                        Calendar today = Calendar.getInstance();
-                        today.set(Calendar.HOUR_OF_DAY, 0);
-                        today.set(Calendar.MINUTE, 0);
-                        today.set(Calendar.SECOND, 0);
-                        today.set(Calendar.MILLISECOND, 0);
-                        long todayStart = today.getTimeInMillis();
-
-                        Calendar weekStart = Calendar.getInstance();
-                        weekStart.add(Calendar.DAY_OF_WEEK, -weekStart.get(Calendar.DAY_OF_WEEK) + 1);
-                        weekStart.set(Calendar.HOUR_OF_DAY, 0);
-                        weekStart.set(Calendar.MINUTE, 0);
-                        weekStart.set(Calendar.SECOND, 0);
-                        weekStart.set(Calendar.MILLISECOND, 0);
-                        long weekStartTime = weekStart.getTimeInMillis();
-
-                        Calendar monthStart = Calendar.getInstance();
-                        monthStart.set(Calendar.DAY_OF_MONTH, 1);
-                        monthStart.set(Calendar.HOUR_OF_DAY, 0);
-                        monthStart.set(Calendar.MINUTE, 0);
-                        monthStart.set(Calendar.SECOND, 0);
-                        monthStart.set(Calendar.MILLISECOND, 0);
-                        long monthStartTime = monthStart.getTimeInMillis();
-
-                        int viewsToday = 0;
-                        int viewsWeek = 0;
-                        int viewsMonth = 0;
-                        long topAdId = -1;
-                        int topAdViews = 0;
-
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            AdView adView = dataSnapshot.getValue(AdView.class);
-                            if (adView == null) continue;
-
-                            long adId = adView.getAdvertisementId();
-                            long viewedAt = adView.getViewedAt();
-
-                            // Count total views per advertisement
-                            mViewCountMap.put(adId, mViewCountMap.getOrDefault(adId, 0) + 1);
-
-                            // Count completed views
-                            if (adView.isCompleted()) {
-                                mCompletedCountMap.put(adId, mCompletedCountMap.getOrDefault(adId, 0) + 1);
-                            }
-
-                            // Count views by time period
-                            if (viewedAt >= todayStart) {
-                                viewsToday++;
-                            }
-                            if (viewedAt >= weekStartTime) {
-                                viewsWeek++;
-                            }
-                            if (viewedAt >= monthStartTime) {
-                                viewsMonth++;
-                            }
-
-                            // Find top advertisement
-                            int adViews = mViewCountMap.get(adId);
-                            if (adViews > topAdViews) {
-                                topAdViews = adViews;
-                                topAdId = adId;
-                            }
-                        }
-
-                        // Update UI
-                        updateStatistics(viewsToday, viewsWeek, viewsMonth, topAdId, topAdViews);
-                        if (mAdapter != null) {
-                            mAdapter.notifyDataSetChanged();
+        // Load advertisements from API
+        apiService.getAllAdvertisements().enqueue(new Callback<List<Advertisement>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<Advertisement>> call, @NonNull Response<List<Advertisement>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    mListAdvertisement.clear();
+                    mListAdvertisement.addAll(response.body());
+                    
+                    // Build view count map from ViewCount field in each advertisement
+                    mViewCountMap.clear();
+                    mCompletedCountMap.clear();
+                    
+                    int totalViews = 0;
+                    long topAdId = -1;
+                    int topAdViews = 0;
+                    
+                    for (Advertisement ad : mListAdvertisement) {
+                        int viewCount = ad.getViewCount();
+                        mViewCountMap.put(ad.getId(), viewCount);
+                        totalViews += viewCount;
+                        
+                        // Find top advertisement
+                        if (viewCount > topAdViews) {
+                            topAdViews = viewCount;
+                            topAdId = ad.getId();
                         }
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                    
+                    // Update UI (views today/week/month not available from API, show 0 or "-")
+                    updateStatistics(0, 0, 0, topAdId, topAdViews);
+                    if (mAdapter != null) {
+                        mAdapter.notifyDataSetChanged();
                     }
-                });
+                } else {
+                    // Show error or empty state
+                    updateStatistics(0, 0, 0, -1, 0);
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<Advertisement>> call, @NonNull Throwable t) {
+                // Show error or empty state
+                updateStatistics(0, 0, 0, -1, 0);
+            }
+        });
     }
 
     @SuppressLint("SetTextI18n")
@@ -177,13 +118,14 @@ public class AdminAdvertisementStatsFragment extends Fragment {
         }
         binding.tvTotalViews.setText(String.valueOf(totalViews));
 
-        // Today, Week, Month
-        binding.tvViewsToday.setText(String.valueOf(viewsToday));
-        binding.tvViewsWeek.setText(String.valueOf(viewsWeek));
-        binding.tvViewsMonth.setText(String.valueOf(viewsMonth));
+        // Today, Week, Month (not available from API, show "-" or 0)
+        // Note: To show actual values, need to create AdView table in SQL Server and track views with timestamps
+        binding.tvViewsToday.setText("-");
+        binding.tvViewsWeek.setText("-");
+        binding.tvViewsMonth.setText("-");
 
         // Top advertisement
-        if (topAdId != -1) {
+        if (topAdId != -1 && topAdViews > 0) {
             for (Advertisement ad : mListAdvertisement) {
                 if (ad.getId() == topAdId) {
                     binding.tvTopAdvertisement.setText(ad.getTitle() + " (" + topAdViews + " " + getString(R.string.label_ad_view_count) + ")");
@@ -193,6 +135,13 @@ public class AdminAdvertisementStatsFragment extends Fragment {
         } else {
             binding.tvTopAdvertisement.setText("-");
         }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload statistics when fragment becomes visible
+        loadStatistics();
     }
 }
 

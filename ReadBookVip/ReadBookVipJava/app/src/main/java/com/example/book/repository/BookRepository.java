@@ -9,6 +9,7 @@ import com.example.book.model.Book;
 import com.example.book.model.BookText;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
