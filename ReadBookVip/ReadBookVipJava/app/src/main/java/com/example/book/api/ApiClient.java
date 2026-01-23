@@ -23,6 +23,7 @@ public class ApiClient {
     private final ApiService apiService;
     private final BookApiService bookApiService;
     private final AdvertisementApiService advertisementApiService;
+    private final AdViewApiService adViewApiService;
     
     private ApiClient() {
         // Logging interceptor for debugging
@@ -57,6 +58,7 @@ public class ApiClient {
         apiService = retrofit.create(ApiService.class);
         bookApiService = retrofit.create(BookApiService.class);
         advertisementApiService = advertisementRetrofit.create(AdvertisementApiService.class);
+        adViewApiService = retrofit.create(AdViewApiService.class);
     }
     
     public static synchronized ApiClient getInstance() {
@@ -76,6 +78,10 @@ public class ApiClient {
     
     public AdvertisementApiService getAdvertisementApiService() {
         return advertisementApiService;
+    }
+    
+    public AdViewApiService getAdViewApiService() {
+        return adViewApiService;
     }
     
     /**

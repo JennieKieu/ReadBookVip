@@ -1,5 +1,9 @@
 package com.example.book.model;
 
+import com.example.book.utils.DateTimeDeserializer;
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 public class AdView implements Serializable {
@@ -7,7 +11,11 @@ public class AdView implements Serializable {
     private long advertisementId;  // ID của quảng cáo
     private String advertisementTitle;  // Tên quảng cáo (để dễ query)
     private String userEmail;  // Email user xem quảng cáo
-    private long viewedAt;  // Thời gian xem
+    
+    @JsonAdapter(DateTimeDeserializer.class)
+    @SerializedName("viewedAt")
+    private long viewedAt;  // Thời gian xem (timestamp in milliseconds)
+    
     private int duration;  // Thời lượng xem (giây) - optional
     private boolean completed;  // Xem hết hay skip
 

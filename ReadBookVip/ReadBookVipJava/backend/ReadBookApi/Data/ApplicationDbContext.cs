@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<BookFavorite> BookFavorites { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Advertisement> Advertisements { get; set; }
+    public DbSet<AdView> AdViews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +77,22 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.VideoUrl).IsRequired().HasMaxLength(1000);
             entity.Property(e => e.Url).HasMaxLength(1000);
             entity.Property(e => e.ThumbnailUrl); // No max length - supports NVARCHAR(MAX) for base64 images
+        });
+
+        modelBuilder.Entity<AdView>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.Advertisement)
+                .WithMany()
+                .HasForeignKey(e => e.AdvertisementId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.Property(e => e.AdvertisementTitle).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.UserEmail).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.ViewedAt).IsRequired();
+            // Indexes for better query performance
+            entity.HasIndex(e => e.AdvertisementId);
+            entity.HasIndex(e => e.ViewedAt);
+            entity.HasIndex(e => new { e.AdvertisementId, e.ViewedAt });
         });
     }
 }

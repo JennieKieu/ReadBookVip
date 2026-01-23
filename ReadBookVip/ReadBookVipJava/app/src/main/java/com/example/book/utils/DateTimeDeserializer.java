@@ -15,7 +15,12 @@ import java.util.TimeZone;
 public class DateTimeDeserializer implements JsonDeserializer<Long> {
     
     private static final String[] DATE_FORMATS = new String[]{
-        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'Z'",  // Support microseconds (7 digits)
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",   // Support microseconds (6 digits)
+        "yyyy-MM-dd'T'HH:mm:ss.SSSSS'Z'",   // Support microseconds (5 digits)
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",     // Support milliseconds (3 digits)
+        "yyyy-MM-dd'T'HH:mm:ss.SS'Z'",      // Support centiseconds (2 digits)
+        "yyyy-MM-dd'T'HH:mm:ss.S'Z'",       // Support deciseconds (1 digit)
         "yyyy-MM-dd'T'HH:mm:ss'Z'",
         "yyyy-MM-dd'T'HH:mm:ss",
         "yyyy-MM-dd HH:mm:ss",
@@ -55,6 +60,32 @@ public class DateTimeDeserializer implements JsonDeserializer<Long> {
             // Not a number, try to parse as date string
         }
 
+        // Handle microseconds format (7 digits after dot) - SimpleDateFormat doesn't support microseconds
+        // Convert to milliseconds format by truncating to 3 digits
+        if (dateString.contains(".") && dateString.contains("Z")) {
+            try {
+                // Extract the part before microseconds
+                int dotIndex = dateString.indexOf('.');
+                int zIndex = dateString.indexOf('Z');
+                if (dotIndex > 0 && zIndex > dotIndex) {
+                    String beforeDot = dateString.substring(0, dotIndex + 1);
+                    String afterDot = dateString.substring(dotIndex + 1, zIndex);
+                    // Truncate to 3 digits (milliseconds)
+                    if (afterDot.length() > 3) {
+                        afterDot = afterDot.substring(0, 3);
+                    } else {
+                        // Pad with zeros if less than 3 digits
+                        while (afterDot.length() < 3) {
+                            afterDot += "0";
+                        }
+                    }
+                    dateString = beforeDot + afterDot + "Z";
+                }
+            } catch (Exception e) {
+                // If conversion fails, try original string
+            }
+        }
+        
         // Try different date formats
         for (String format : DATE_FORMATS) {
             try {

@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import com.example.book.R;
+import com.example.book.api.AdViewApiService;
 import com.example.book.api.AdvertisementApiService;
 import com.example.book.api.ApiClient;
 import com.example.book.constant.Constant;
@@ -38,9 +39,12 @@ public class AdvertisementActivity extends BaseActivity {
     private Runnable skipRunnable;
     private long videoStartTime;
     private boolean isCompleted = false;
+    private boolean hasTracked = false;  // Flag to ensure we only track once per view
     private AdvertisementApiService apiService;
+    private AdViewApiService adViewApiService;
     private boolean isAdmin = false;  // Track if current user is admin
     private boolean hasStartedCounting = false;  // Track if 5-second countdown has started
+    private long videoStartTimeMillis = 0;  // Track when video started playing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +58,7 @@ public class AdvertisementActivity extends BaseActivity {
         setContentView(binding.getRoot());
 
         apiService = ApiClient.getInstance().getAdvertisementApiService();
+        adViewApiService = ApiClient.getInstance().getAdViewApiService();
         
         // Check if user is admin
         User user = DataStoreManager.getUser();
@@ -118,11 +123,15 @@ public class AdvertisementActivity extends BaseActivity {
             skipHandler.postDelayed(skipRunnable, 500);
         }
 
-        // Track when video completes (only for regular users)
+        // Track when video starts and completes (only for regular users)
         if (!isAdmin) {
             player.addListener(new Player.Listener() {
                 @Override
                 public void onPlaybackStateChanged(int playbackState) {
+                    if (playbackState == Player.STATE_READY && videoStartTimeMillis == 0) {
+                        // Video is ready and about to start
+                        videoStartTimeMillis = System.currentTimeMillis();
+                    }
                     if (playbackState == Player.STATE_ENDED) {
                         isCompleted = true;
                         binding.btnClose.setVisibility(View.VISIBLE);
@@ -161,17 +170,57 @@ public class AdvertisementActivity extends BaseActivity {
     private void trackAdView(boolean completed) {
         // Only track for regular users, not admin
         if (isAdmin || mAdvertisement == null) return;
-
-        // Increment view count via API
-        apiService.incrementViewCount(mAdvertisement.getId()).enqueue(new Callback<Void>() {
+        
+        // Only track once per view session
+        if (hasTracked) {
+            android.util.Log.d("AdvertisementActivity", "AdView already tracked, skipping duplicate");
+            return;
+        }
+        
+        String userEmail = DataStoreManager.getUser() != null ? DataStoreManager.getUser().getEmail() : "";
+        if (userEmail.isEmpty()) return;
+        
+        // Calculate duration in seconds
+        int duration = 0;
+        if (videoStartTimeMillis > 0) {
+            duration = (int) ((System.currentTimeMillis() - videoStartTimeMillis) / 1000);
+        }
+        
+        // Create final variables for use in inner class
+        final int finalDuration = duration;
+        final boolean finalCompleted = completed;
+        
+        // Create AdView record
+        AdViewApiService.CreateAdViewDto createDto = new AdViewApiService.CreateAdViewDto(
+            mAdvertisement.getId(),
+            userEmail,
+            finalDuration,
+            finalCompleted
+        );
+        
+        // Mark as tracked to prevent duplicate calls
+        hasTracked = true;
+        
+        // Save AdView to SQL Server
+        adViewApiService.createAdView(createDto).enqueue(new Callback<com.example.book.model.AdView>() {
             @Override
-            public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> response) {
-                // View count updated
+            public void onResponse(@NonNull Call<com.example.book.model.AdView> call, @NonNull Response<com.example.book.model.AdView> response) {
+                if (response.isSuccessful()) {
+                    // AdView saved successfully
+                    android.util.Log.d("AdvertisementActivity", "AdView saved successfully: duration=" + finalDuration + ", completed=" + finalCompleted);
+                } else {
+                    android.util.Log.e("AdvertisementActivity", "Failed to save AdView: " + response.code() + " - " + response.message());
+                    // Reset flag on failure so we can retry
+                    hasTracked = false;
+                }
             }
 
             @Override
-            public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {
-                // Silent fail
+            public void onFailure(@NonNull Call<com.example.book.model.AdView> call, @NonNull Throwable t) {
+                // Log error for debugging
+                android.util.Log.e("AdvertisementActivity", "Error saving AdView: " + t.getMessage(), t);
+                // Reset flag on failure so we can retry
+                hasTracked = false;
             }
         });
     }

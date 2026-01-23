@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.book.R;
 import com.example.book.adapter.admin.AdminAdvertisementStatsAdapter;
+import com.example.book.api.AdViewApiService;
 import com.example.book.api.AdvertisementApiService;
 import com.example.book.api.ApiClient;
 import com.example.book.databinding.FragmentAdminAdvertisementStatsBinding;
+import com.example.book.model.AdStatistics;
 import com.example.book.model.Advertisement;
 
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public class AdminAdvertisementStatsFragment extends Fragment {
     private Map<Long, Integer> mCompletedCountMap;  // advertisementId -> completedCount (not available from API, keep for compatibility)
     private AdminAdvertisementStatsAdapter mAdapter;
     private AdvertisementApiService apiService;
+    private AdViewApiService adViewApiService;
 
     @Nullable
     @Override
@@ -57,12 +60,13 @@ public class AdminAdvertisementStatsFragment extends Fragment {
         mAdapter = new AdminAdvertisementStatsAdapter(mListAdvertisement, mViewCountMap, mCompletedCountMap);
         binding.rcvAdvertisementStats.setAdapter(mAdapter);
         apiService = ApiClient.getInstance().getAdvertisementApiService();
+        adViewApiService = ApiClient.getInstance().getAdViewApiService();
     }
 
     private void loadStatistics() {
         if (getActivity() == null) return;
 
-        // Load advertisements from API
+        // First load advertisements, then load statistics
         apiService.getAllAdvertisements().enqueue(new Callback<List<Advertisement>>() {
             @Override
             public void onResponse(@NonNull Call<List<Advertisement>> call, @NonNull Response<List<Advertisement>> response) {
@@ -70,43 +74,92 @@ public class AdminAdvertisementStatsFragment extends Fragment {
                     mListAdvertisement.clear();
                     mListAdvertisement.addAll(response.body());
                     
-                    // Build view count map from ViewCount field in each advertisement
-                    mViewCountMap.clear();
-                    mCompletedCountMap.clear();
-                    
-                    int totalViews = 0;
-                    long topAdId = -1;
-                    int topAdViews = 0;
-                    
-                    for (Advertisement ad : mListAdvertisement) {
-                        int viewCount = ad.getViewCount();
-                        mViewCountMap.put(ad.getId(), viewCount);
-                        totalViews += viewCount;
-                        
-                        // Find top advertisement
-                        if (viewCount > topAdViews) {
-                            topAdViews = viewCount;
-                            topAdId = ad.getId();
-                        }
-                    }
-                    
-                    // Update UI (views today/week/month not available from API, show 0 or "-")
-                    updateStatistics(0, 0, 0, topAdId, topAdViews);
-                    if (mAdapter != null) {
-                        mAdapter.notifyDataSetChanged();
-                    }
+                    // Now load statistics from AdViews API
+                    loadAdViewStatistics();
                 } else {
-                    // Show error or empty state
                     updateStatistics(0, 0, 0, -1, 0);
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Advertisement>> call, @NonNull Throwable t) {
-                // Show error or empty state
                 updateStatistics(0, 0, 0, -1, 0);
             }
         });
+    }
+    
+    private void loadAdViewStatistics() {
+        adViewApiService.getStatistics().enqueue(new Callback<AdStatistics>() {
+            @Override
+            public void onResponse(@NonNull Call<AdStatistics> call, @NonNull Response<AdStatistics> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    AdStatistics stats = response.body();
+                    android.util.Log.d("AdminStats", "Statistics loaded: Total=" + stats.getTotalViews() + ", Today=" + stats.getViewsToday());
+                    
+                    // Build view count maps from statistics
+                    mViewCountMap.clear();
+                    mCompletedCountMap.clear();
+                    
+                    if (stats.getViewCountsByAdvertisement() != null) {
+                        for (com.example.book.model.AdViewCount viewCount : stats.getViewCountsByAdvertisement()) {
+                            mViewCountMap.put(viewCount.getAdvertisementId(), viewCount.getTotalViews());
+                            mCompletedCountMap.put(viewCount.getAdvertisementId(), viewCount.getCompletedViews());
+                        }
+                    }
+                    
+                    // Update UI with real statistics
+                    long topAdId = stats.getTopAdvertisementId() != null ? stats.getTopAdvertisementId() : -1;
+                    updateStatistics(
+                        stats.getViewsToday(),
+                        stats.getViewsWeek(),
+                        stats.getViewsMonth(),
+                        topAdId,
+                        stats.getTopAdvertisementViews()
+                    );
+                    
+                    if (mAdapter != null) {
+                        mAdapter.notifyDataSetChanged();
+                    }
+                } else {
+                    android.util.Log.e("AdminStats", "Failed to load statistics: " + response.code() + " - " + response.message());
+                    // Fallback to ViewCount from advertisements
+                    updateStatisticsFromViewCount();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AdStatistics> call, @NonNull Throwable t) {
+                android.util.Log.e("AdminStats", "Error loading statistics: " + t.getMessage(), t);
+                // Fallback to ViewCount from advertisements
+                updateStatisticsFromViewCount();
+            }
+        });
+    }
+    
+    private void updateStatisticsFromViewCount() {
+        // Fallback: use ViewCount from Advertisement table
+        mViewCountMap.clear();
+        mCompletedCountMap.clear();
+        
+        int totalViews = 0;
+        long topAdId = -1;
+        int topAdViews = 0;
+        
+        for (Advertisement ad : mListAdvertisement) {
+            int viewCount = ad.getViewCount();
+            mViewCountMap.put(ad.getId(), viewCount);
+            totalViews += viewCount;
+            
+            if (viewCount > topAdViews) {
+                topAdViews = viewCount;
+                topAdId = ad.getId();
+            }
+        }
+        
+        updateStatistics(0, 0, 0, topAdId, topAdViews);
+        if (mAdapter != null) {
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -118,11 +171,10 @@ public class AdminAdvertisementStatsFragment extends Fragment {
         }
         binding.tvTotalViews.setText(String.valueOf(totalViews));
 
-        // Today, Week, Month (not available from API, show "-" or 0)
-        // Note: To show actual values, need to create AdView table in SQL Server and track views with timestamps
-        binding.tvViewsToday.setText("-");
-        binding.tvViewsWeek.setText("-");
-        binding.tvViewsMonth.setText("-");
+        // Today, Week, Month
+        binding.tvViewsToday.setText(String.valueOf(viewsToday));
+        binding.tvViewsWeek.setText(String.valueOf(viewsWeek));
+        binding.tvViewsMonth.setText(String.valueOf(viewsMonth));
 
         // Top advertisement
         if (topAdId != -1 && topAdViews > 0) {
