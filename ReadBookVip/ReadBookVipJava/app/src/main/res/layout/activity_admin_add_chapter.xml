@@ -91,122 +91,20 @@
                 android:textStyle="bold"
                 android:text="Chapter Content (*)" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/define_dimen_4"
-                android:textSize="@dimen/text_size_12sp"
-                android:textColor="@color/colorGray"
-                android:text="Use the toolbar below to format text" />
-
-            <!-- Formatting toolbar -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/define_dimen_8"
-                android:background="@color/white"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="@dimen/define_dimen_8">
-
-                    <ImageButton
-                        android:id="@+id/btn_bold"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_format_bold"
-                        android:contentDescription="Bold" />
-
-                    <ImageButton
-                        android:id="@+id/btn_italic"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/define_dimen_4"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_format_italic"
-                        android:contentDescription="Italic" />
-
-                    <ImageButton
-                        android:id="@+id/btn_underline"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/define_dimen_4"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_format_underline"
-                        android:contentDescription="Underline" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="@dimen/define_dimen_8"
-                        android:layout_marginEnd="@dimen/define_dimen_8"
-                        android:background="@color/dividerColor" />
-
-                    <TextView
-                        android:id="@+id/btn_h1"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:text="H1"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/colorPrimaryDark"
-                        android:contentDescription="Heading 1" />
-
-                    <TextView
-                        android:id="@+id/btn_h2"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/define_dimen_4"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:gravity="center"
-                        android:text="H2"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/colorPrimaryDark"
-                        android:contentDescription="Heading 2" />
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="@dimen/define_dimen_8"
-                        android:layout_marginEnd="@dimen/define_dimen_8"
-                        android:background="@color/dividerColor" />
-
-                    <ImageButton
-                        android:id="@+id/btn_bullet"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_format_list_bulleted"
-                        android:contentDescription="Bullet List" />
-
-                    <ImageButton
-                        android:id="@+id/btn_quote"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/define_dimen_4"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:src="@drawable/ic_format_quote"
-                        android:contentDescription="Quote" />
-
-                </LinearLayout>
-            </HorizontalScrollView>
-
-            <!-- Rich text editor -->
-            <jp.wasabeef.richeditor.RichEditor
-                android:id="@+id/rich_editor"
+            <!-- Plain text editor -->
+            <EditText
+                android:id="@+id/edt_chapter_content"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:layout_marginTop="@dimen/define_dimen_8"
                 android:padding="@dimen/define_dimen_12"
-                android:background="@color/white" />
+                android:background="@color/white"
+                android:gravity="top"
+                android:inputType="textMultiLine|textCapSentences"
+                android:hint="Enter chapter content"
+                android:textSize="@dimen/text_size_14sp"
+                android:textColor="@color/colorPrimaryDark" />
 
         </LinearLayout>
 

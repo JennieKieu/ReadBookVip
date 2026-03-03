@@ -7,7 +7,7 @@ public class Chapter implements Serializable {
     private long bookId;
     private int chapterNumber;
     private String title;
-    private String content; // HTML content
+    private String content; // Plain text or HTML content
 
     public Chapter() {}
 

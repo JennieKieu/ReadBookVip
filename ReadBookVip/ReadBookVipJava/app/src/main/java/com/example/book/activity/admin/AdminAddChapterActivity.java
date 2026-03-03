@@ -1,6 +1,8 @@
 package com.example.book.activity.admin;
 
 import android.os.Bundle;
+import android.text.Html;
+import android.text.Spanned;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -67,49 +69,17 @@ public class AdminAddChapterActivity extends BaseActivity {
     private void initView() {
         apiService = ApiClient.getInstance().getBookApiService();
 
-        // Setup RichEditor
-        binding.richEditor.setPlaceholder("Start writing your chapter content...");
-        binding.richEditor.setEditorFontSize(16);
-        binding.richEditor.setEditorFontColor(getResources().getColor(R.color.colorPrimaryDark, null));
-        binding.richEditor.setPadding(10, 10, 10, 10);
-
-        // Setup formatting toolbar
-        setupFormattingToolbar();
-
         if (isUpdate && mChapter != null) {
             // Edit existing chapter
             binding.edtChapterNumber.setText(String.valueOf(mChapter.getChapterNumber()));
             binding.edtChapterTitle.setText(mChapter.getTitle());
-            binding.richEditor.setHtml(mChapter.getContent());
+            binding.edtChapterContent.setText(buildEditorPlainText(mChapter.getContent()));
         } else {
             // Add new chapter - auto-fill chapter number (but allow editing)
             binding.edtChapterNumber.setText(String.valueOf(suggestedChapterNumber));
         }
 
         binding.btnSaveChapter.setOnClickListener(v -> saveOrUpdateChapter());
-    }
-
-    private void setupFormattingToolbar() {
-        // Bold
-        binding.btnBold.setOnClickListener(v -> binding.richEditor.setBold());
-        
-        // Italic
-        binding.btnItalic.setOnClickListener(v -> binding.richEditor.setItalic());
-        
-        // Underline
-        binding.btnUnderline.setOnClickListener(v -> binding.richEditor.setUnderline());
-        
-        // Heading 1
-        binding.btnH1.setOnClickListener(v -> binding.richEditor.setHeading(1));
-        
-        // Heading 2
-        binding.btnH2.setOnClickListener(v -> binding.richEditor.setHeading(2));
-        
-        // Bullet list
-        binding.btnBullet.setOnClickListener(v -> binding.richEditor.setBullets());
-        
-        // Quote
-        binding.btnQuote.setOnClickListener(v -> binding.richEditor.setBlockquote());
     }
 
     private void saveOrUpdateChapter() {
@@ -120,7 +90,7 @@ public class AdminAddChapterActivity extends BaseActivity {
 
         String strChapterNumber = binding.edtChapterNumber.getText().toString().trim();
         String strTitle = binding.edtChapterTitle.getText().toString().trim();
-        String strContent = binding.richEditor.getHtml();
+        String strContent = binding.edtChapterContent.getText().toString().trim();
 
         if (StringUtil.isEmpty(strChapterNumber)) {
             Toast.makeText(this, "Please enter chapter number", Toast.LENGTH_SHORT).show();
@@ -201,6 +171,19 @@ public class AdminAddChapterActivity extends BaseActivity {
                 }
             });
         }
+    }
+
+    private String buildEditorPlainText(String content) {
+        if (StringUtil.isEmpty(content)) return "";
+        if (looksLikeHtml(content)) {
+            Spanned spanned = Html.fromHtml(content, Html.FROM_HTML_MODE_LEGACY);
+            return spanned.toString();
+        }
+        return content;
+    }
+
+    private boolean looksLikeHtml(String content) {
+        return content != null && content.matches("(?s).*<[^>]+>.*");
     }
 }
 

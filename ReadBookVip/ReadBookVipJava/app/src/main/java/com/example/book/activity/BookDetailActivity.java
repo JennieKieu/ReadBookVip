@@ -1,6 +1,7 @@
 package com.example.book.activity;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -219,10 +220,7 @@ public class BookDetailActivity extends BaseActivity {
         tvChapterTitle.setText(title);
         
         // Display HTML content
-        String htmlContent = "<html><head><meta charset='UTF-8'>" +
-                "<style>body { font-family: sans-serif; font-size: 18px; line-height: 1.6; " +
-                "padding: 16px; color: #333; }</style></head><body>" +
-                chapter.getContent() + "</body></html>";
+        String htmlContent = buildHtmlContent(chapter.getContent());
         webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null);
         
         // Update navigation buttons
@@ -312,6 +310,25 @@ public class BookDetailActivity extends BaseActivity {
             Chapter firstChapter = mListChapters.get(0);
             saveReadingProgress(firstChapter);
         }
+    }
+
+    private String buildHtmlContent(String content) {
+        String body = "";
+        if (!StringUtil.isEmpty(content)) {
+            if (looksLikeHtml(content)) {
+                body = content;
+            } else {
+                body = TextUtils.htmlEncode(content).replace("\n", "<br/>");
+            }
+        }
+        return "<html><head><meta charset='UTF-8'>" +
+                "<style>body { font-family: sans-serif; font-size: 18px; line-height: 1.6; " +
+                "padding: 16px; color: #333; }</style></head><body>" +
+                body + "</body></html>";
+    }
+
+    private boolean looksLikeHtml(String content) {
+        return content != null && content.matches("(?s).*<[^>]+>.*");
     }
 
     // PDF code - commented for text/chapter migration

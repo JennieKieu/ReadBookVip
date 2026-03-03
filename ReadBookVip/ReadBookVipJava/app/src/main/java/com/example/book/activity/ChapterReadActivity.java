@@ -2,6 +2,7 @@ package com.example.book.activity;
 
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -359,6 +360,14 @@ public class ChapterReadActivity extends BaseActivity {
     }
 
     private String buildHtmlContent(String content) {
+        String body = "";
+        if (!StringUtil.isEmpty(content)) {
+            if (looksLikeHtml(content)) {
+                body = content;
+            } else {
+                body = TextUtils.htmlEncode(content).replace("\n", "<br/>");
+            }
+        }
         return "<html>" +
                 "<head>" +
                 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>" +
@@ -369,9 +378,13 @@ public class ChapterReadActivity extends BaseActivity {
                 "</style>" +
                 "</head>" +
                 "<body>" +
-                content +
+                body +
                 "</body>" +
                 "</html>";
+    }
+
+    private boolean looksLikeHtml(String content) {
+        return content != null && content.matches("(?s).*<[^>]+>.*");
     }
 
     private void goToPrevChapter() {
