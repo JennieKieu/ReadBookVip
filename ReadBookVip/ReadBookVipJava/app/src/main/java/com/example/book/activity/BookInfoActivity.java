@@ -147,13 +147,13 @@ public class BookInfoActivity extends BaseActivity {
         binding.rcvChapters.setLayoutManager(layoutManager);
 
         chapterAdapter = new ChapterAdapter(mListChapters, (chapter, position) -> {
-            // Go to ChapterReadActivity
-            goToChapterRead(position);
+            // Go to ChapterReadActivity at selected chapter
+            goToChapterRead(position, false);
         });
         binding.rcvChapters.setAdapter(chapterAdapter);
 
         // Start Reading button
-        binding.btnStartReading.setOnClickListener(v -> goToChapterRead(0));
+        binding.btnStartReading.setOnClickListener(v -> goToChapterRead(0, true));
     }
 
     private void loadBookDetails() {
@@ -254,13 +254,14 @@ public class BookInfoActivity extends BaseActivity {
         });
     }
 
-    private void goToChapterRead(int chapterIndex) {
+    private void goToChapterRead(int chapterIndex, boolean useHistory) {
         if (mBook == null || mListChapters.isEmpty()) return;
 
         Intent intent = new Intent(this, ChapterReadActivity.class);
         intent.putExtra(Constant.BOOK_ID, mBook.getId());
         intent.putExtra(Constant.BOOK_TITLE, mBook.getTitle());
         intent.putExtra(Constant.CHAPTER_INDEX, chapterIndex);
+        intent.putExtra(Constant.USE_HISTORY, useHistory);
         startActivity(intent);
     }
 }
