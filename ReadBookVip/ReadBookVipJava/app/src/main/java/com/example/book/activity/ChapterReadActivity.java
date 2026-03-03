@@ -27,10 +27,15 @@ import com.example.book.databinding.ActivityChapterReadBinding;
 import com.example.book.listener.IOnChapterClickListener;
 import com.example.book.model.Advertisement;
 import com.example.book.model.Chapter;
+import com.example.book.prefs.DataStoreManager;
+import com.example.book.utils.StringUtil;
 import com.example.book.widget.OverscrollScrollView;
+import com.afollestad.materialdialogs.MaterialDialog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,6 +52,7 @@ public class ChapterReadActivity extends BaseActivity {
     private String bookTitle;
     private int currentChapterIndex = 0;
     private int chapterChangeCount = 0; // Count chapter changes for ad display
+    private boolean useHistory = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +77,7 @@ public class ChapterReadActivity extends BaseActivity {
             bookId = bundle.getLong(Constant.BOOK_ID, 0);
             bookTitle = bundle.getString(Constant.BOOK_TITLE, "");
             currentChapterIndex = bundle.getInt(Constant.CHAPTER_INDEX, 0);
+            useHistory = bundle.getBoolean(Constant.USE_HISTORY, false);
         }
     }
 
@@ -82,7 +89,7 @@ public class ChapterReadActivity extends BaseActivity {
         }
 
         // Back button
-        binding.toolbar.setNavigationOnClickListener(v -> finish());
+        binding.toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
     
     @Override
@@ -265,7 +272,11 @@ public class ChapterReadActivity extends BaseActivity {
                     }
                     
                     if (!mListChapters.isEmpty()) {
-                        displayChapter();
+                        if (useHistory) {
+                            loadReadingHistory();
+                        } else {
+                            displayChapter();
+                        }
                     } else {
                         Toast.makeText(ChapterReadActivity.this, "No chapters available", Toast.LENGTH_SHORT).show();
                     }
@@ -278,6 +289,39 @@ public class ChapterReadActivity extends BaseActivity {
             public void onFailure(@NonNull Call<List<Chapter>> call, @NonNull Throwable t) {
                 showProgressDialog(false);
                 Toast.makeText(ChapterReadActivity.this, "Connection error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void loadReadingHistory() {
+        String userEmail = DataStoreManager.getUser() != null ? DataStoreManager.getUser().getEmail() : null;
+        if (StringUtil.isEmpty(userEmail)) {
+            displayChapter();
+            return;
+        }
+
+        apiService.getHistory(bookId, userEmail).enqueue(new Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(@NonNull Call<Map<String, Object>> call, @NonNull Response<Map<String, Object>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Map<String, Object> history = response.body();
+                    Object chapterNumberObj = history.get("chapterNumber");
+                    if (chapterNumberObj instanceof Number) {
+                        int chapterNumber = ((Number) chapterNumberObj).intValue();
+                        for (int i = 0; i < mListChapters.size(); i++) {
+                            if (mListChapters.get(i).getChapterNumber() == chapterNumber) {
+                                currentChapterIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+                displayChapter();
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Map<String, Object>> call, @NonNull Throwable t) {
+                displayChapter();
             }
         });
     }
@@ -382,8 +426,51 @@ public class ChapterReadActivity extends BaseActivity {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.END)) {
             binding.drawerLayout.closeDrawer(GravityCompat.END);
         } else {
-            super.onBackPressed();
+            showSaveHistoryDialog();
         }
+    }
+
+    private void showSaveHistoryDialog() {
+        new MaterialDialog.Builder(this)
+                .title(getString(R.string.app_name))
+                .content(getString(R.string.msg_save_history_confirm))
+                .positiveText(getString(R.string.action_ok))
+                .onPositive((dialog, which) -> saveHistoryAndFinish())
+                .negativeText(getString(R.string.action_cancel))
+                .onNegative((dialog, which) -> finish())
+                .cancelable(false)
+                .show();
+    }
+
+    private void saveHistoryAndFinish() {
+        if (mListChapters == null || mListChapters.isEmpty()
+                || currentChapterIndex < 0 || currentChapterIndex >= mListChapters.size()) {
+            finish();
+            return;
+        }
+
+        String userEmail = DataStoreManager.getUser() != null ? DataStoreManager.getUser().getEmail() : null;
+        if (StringUtil.isEmpty(userEmail)) {
+            finish();
+            return;
+        }
+
+        Chapter currentChapter = mListChapters.get(currentChapterIndex);
+        Map<String, Object> historyData = new HashMap<>();
+        historyData.put("bookId", bookId);
+        historyData.put("userEmail", userEmail);
+        historyData.put("chapterId", currentChapter.getId());
+        historyData.put("chapterNumber", currentChapter.getChapterNumber());
+
+        apiService.saveHistory(bookId, historyData).enqueue(new Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(@NonNull Call<Map<String, Object>> call, @NonNull Response<Map<String, Object>> response) {}
+
+            @Override
+            public void onFailure(@NonNull Call<Map<String, Object>> call, @NonNull Throwable t) {}
+        });
+
+        finish();
     }
 }
 

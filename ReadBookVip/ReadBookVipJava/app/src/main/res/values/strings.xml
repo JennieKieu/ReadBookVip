@@ -46,6 +46,7 @@
     <string name="msg_comment_require">Please enter your comment</string>
     <string name="msg_send_feedback_success">Feedback sent successfully, thank you very much!</string>
     <string name="msg_file_error">File error, please try again</string>
+    <string name="msg_save_history_confirm">Bạn có muốn lưu lại lịch sử đọc?</string>
 
     <!-- Module user -->
     <string name="label_user_name">Email</string>

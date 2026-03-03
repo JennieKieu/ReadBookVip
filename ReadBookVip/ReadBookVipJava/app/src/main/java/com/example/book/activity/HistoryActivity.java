@@ -1,24 +1,22 @@
 package com.example.book.activity;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.content.Intent;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import com.example.book.MyApplication;
 import com.example.book.R;
 import com.example.book.adapter.BookAdapter;
+import com.example.book.api.ApiCallback;
+import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityHistoryBinding;
 import com.example.book.listener.IOnClickBookListener;
 import com.example.book.model.Book;
 import com.example.book.model.Category;
-import com.example.book.model.UserInfo;
 import com.example.book.prefs.DataStoreManager;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
+import com.example.book.repository.BookRepository;
+import com.example.book.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +26,6 @@ public class HistoryActivity extends BaseActivity {
     private ActivityHistoryBinding mBinding;
     private List<Book> mListBook;
     private BookAdapter mBookAdapter;
-    private ValueEventListener mValueEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +51,13 @@ public class HistoryActivity extends BaseActivity {
         mBookAdapter = new BookAdapter(mListBook, new IOnClickBookListener() {
             @Override
             public void onClickItemBook(Book book) {
-                GlobalFunction.goToBookDetail(HistoryActivity.this, book);
+                if (book == null) return;
+                Intent intent = new Intent(HistoryActivity.this, ChapterReadActivity.class);
+                intent.putExtra(Constant.BOOK_ID, book.getId());
+                intent.putExtra(Constant.BOOK_TITLE, book.getTitle());
+                intent.putExtra(Constant.CHAPTER_INDEX, 0);
+                intent.putExtra(Constant.USE_HISTORY, true);
+                startActivity(intent);
             }
 
             @Override
@@ -70,29 +73,34 @@ public class HistoryActivity extends BaseActivity {
         mBinding.rcvData.setAdapter(mBookAdapter);
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private void loadDataHistory() {
-        mValueEventListener = new ValueEventListener() {
+        showProgressDialog(true);
+        String userEmail = DataStoreManager.getUser() != null ? DataStoreManager.getUser().getEmail() : null;
+        if (StringUtil.isEmpty(userEmail)) {
+            showProgressDialog(false);
+            resetListData();
+            if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        BookRepository.getInstance().getHistoryBooks(userEmail, new ApiCallback<List<Book>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onSuccess(List<Book> books) {
+                showProgressDialog(false);
                 resetListData();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Book book = dataSnapshot.getValue(Book.class);
-                    if (book == null) return;
-                    if (isHistoryBook(book)) {
-                        mListBook.add(0, book);
-                    }
+                if (books != null) {
+                    mListBook.addAll(books);
                 }
                 if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onError(String errorMessage) {
+                showProgressDialog(false);
                 GlobalFunction.showToastMessage(HistoryActivity.this,
                         getString(R.string.msg_get_date_error));
             }
-        };
-        MyApplication.get(this).bookDatabaseReference().addValueEventListener(mValueEventListener);
+        });
     }
 
     private void resetListData() {
@@ -103,23 +111,4 @@ public class HistoryActivity extends BaseActivity {
         }
     }
 
-    private boolean isHistoryBook(Book book) {
-        if (book.getHistory() == null || book.getHistory().isEmpty()) return false;
-        List<UserInfo> listUsersHistory = new ArrayList<>(book.getHistory().values());
-        if (listUsersHistory.isEmpty()) return false;
-        for (UserInfo userInfo : listUsersHistory) {
-            if (DataStoreManager.getUser().getEmail().equals(userInfo.getEmailUser())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mValueEventListener != null) {
-            MyApplication.get(this).bookDatabaseReference().removeEventListener(mValueEventListener);
-        }
-    }
 }

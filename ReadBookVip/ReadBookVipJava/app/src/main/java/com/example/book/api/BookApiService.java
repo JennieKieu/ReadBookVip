@@ -61,6 +61,9 @@ public interface BookApiService {
     @POST("api/books/{bookId}/history")
     Call<Map<String, Object>> saveHistory(@Path("bookId") long bookId, @Body Map<String, Object> historyData);
 
+    @GET("api/history")
+    Call<List<BookText>> getHistoryBooks(@Query("userEmail") String userEmail);
+
     // Favorites API
     @GET("api/books/favorites")
     Call<List<Long>> getFavorites(@Query("userEmail") String userEmail);

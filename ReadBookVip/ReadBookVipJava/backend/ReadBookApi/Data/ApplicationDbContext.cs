@@ -41,6 +41,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<BookHistory>(entity =>
         {
+            entity.ToTable("BookHistory");
             entity.HasKey(e => e.Id);
             entity.HasOne<Book>()
                 .WithMany()

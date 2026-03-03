@@ -152,5 +152,33 @@ public class BookRepository {
             }
         });
     }
+
+    /**
+     * Get history books for a user
+     */
+    public void getHistoryBooks(String userEmail, ApiCallback<List<Book>> callback) {
+        if (userEmail == null || userEmail.trim().isEmpty()) {
+            callback.onSuccess(new ArrayList<>());
+            return;
+        }
+
+        BookApiService apiService = ApiClient.getInstance().getBookApiService();
+        apiService.getHistoryBooks(userEmail).enqueue(new Callback<List<BookText>>() {
+            @Override
+            public void onResponse(@NonNull Call<List<BookText>> call, @NonNull Response<List<BookText>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Book> books = convertBookTextListToBookList(response.body());
+                    callback.onSuccess(books);
+                } else {
+                    callback.onError("Failed to load history books");
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<List<BookText>> call, @NonNull Throwable t) {
+                callback.onError("Network error: " + t.getMessage());
+            }
+        });
+    }
 }
 

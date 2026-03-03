@@ -8,6 +8,7 @@ public class Constant {
     public static final String BOOK_ID = "book_id";
     public static final String BOOK_TITLE = "book_title";
     public static final String CHAPTER_INDEX = "chapter_index";
+    public static final String USE_HISTORY = "use_history";
 
     public static final int MAX_SIZE_LIST_CATEGORY = 5;
     public static final int MAX_SIZE_LIST_FEATURED = 5;

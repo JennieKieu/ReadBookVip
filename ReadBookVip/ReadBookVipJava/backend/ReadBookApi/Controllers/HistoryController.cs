@@ -16,6 +16,58 @@ public class HistoryController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("~/api/history")]
+    public async Task<ActionResult<List<BookDto>>> GetHistoryBooks([FromQuery] string userEmail)
+    {
+        if (string.IsNullOrWhiteSpace(userEmail))
+        {
+            return BadRequest("UserEmail is required");
+        }
+
+        var histories = await _context.BookHistories
+            .Where(h => h.UserEmail == userEmail)
+            .OrderByDescending(h => h.LastReadAt)
+            .ToListAsync();
+
+        if (!histories.Any())
+        {
+            return Ok(new List<BookDto>());
+        }
+
+        var bookIds = histories.Select(h => h.BookId).Distinct().ToList();
+        var books = await _context.Books
+            .Include(b => b.Chapters)
+            .Where(b => bookIds.Contains(b.Id))
+            .ToListAsync();
+
+        var bookLookup = books.ToDictionary(b => b.Id, b => b);
+        var results = new List<BookDto>();
+        var added = new HashSet<long>();
+
+        foreach (var history in histories)
+        {
+            if (!bookLookup.TryGetValue(history.BookId, out var book)) continue;
+            if (!added.Add(book.Id)) continue;
+
+            results.Add(new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Image = book.Image,
+                Banner = book.Banner,
+                CategoryId = book.CategoryId,
+                CategoryName = book.CategoryName,
+                Description = book.Description,
+                Tags = book.Tags,
+                Status = book.Status ?? "ongoing",
+                Featured = book.Featured,
+                ChapterCount = book.Chapters.Count
+            });
+        }
+
+        return Ok(results);
+    }
+
     [HttpGet]
     public async Task<ActionResult<BookHistoryDto>> GetHistory(long bookId, [FromQuery] string userEmail)
     {
