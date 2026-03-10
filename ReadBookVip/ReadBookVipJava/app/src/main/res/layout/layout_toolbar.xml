@@ -42,9 +42,21 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/define_dimen_5"
             android:text="@string/app_name"
-            android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/img_toolbar"
             android:textColor="@color/textColorHeading"
             android:textSize="@dimen/text_size_16sp" />
+
+        <ImageView
+            android:id="@+id/img_toolbar_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:padding="@dimen/define_dimen_10"
+            android:src="@drawable/ic_delete"
+            android:visibility="gone"
+            tools:ignore="ContentDescription" />
     </RelativeLayout>
 
     <View

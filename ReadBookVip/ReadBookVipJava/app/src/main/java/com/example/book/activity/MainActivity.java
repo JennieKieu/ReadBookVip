@@ -162,13 +162,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 for (com.google.firebase.database.DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Category category = dataSnapshot.getValue(Category.class);
                     if (category == null) continue;
-
-                    // Exclude "History" from category menu; History is handled in Other features
-                    if (category.getName() != null
-                            && category.getName().equalsIgnoreCase("History")) {
-                        continue;
-                    }
-
                     mListCategory.add(category);
                 }
                 if (mCategoryMenuAdapter != null) mCategoryMenuAdapter.notifyDataSetChanged();

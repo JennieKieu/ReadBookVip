@@ -8,6 +8,8 @@
     <string name="action_close">Close</string>
     <string name="action_add">Add</string>
     <string name="action_edit">Update</string>
+    <string name="action_read">Read</string>
+    <string name="action_delete">Delete</string>
 
     <!-- Hint -->
     <string name="hint_book_name">Name…</string>
@@ -47,6 +49,8 @@
     <string name="msg_send_feedback_success">Feedback sent successfully, thank you very much!</string>
     <string name="msg_file_error">File error, please try again</string>
     <string name="msg_save_history_confirm">Do you want to save the reading history?</string>
+    <string name="msg_confirm_delete_history_all">Are you sure you want to delete all reading history?</string>
+    <string name="msg_history_item_options">What do you want to do with this book?</string>
 
     <!-- Module user -->
     <string name="label_user_name">Email</string>

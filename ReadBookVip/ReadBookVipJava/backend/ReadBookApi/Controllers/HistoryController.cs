@@ -137,5 +137,52 @@ public class HistoryController : ControllerBase
                 LastReadAt = history.LastReadAt
             });
     }
+
+    // Delete history for a specific book & user
+    [HttpDelete]
+    public async Task<IActionResult> DeleteHistory(long bookId, [FromQuery] string userEmail)
+    {
+        if (string.IsNullOrWhiteSpace(userEmail))
+        {
+            return BadRequest("UserEmail is required");
+        }
+
+        var history = await _context.BookHistories
+            .FirstOrDefaultAsync(h => h.BookId == bookId && h.UserEmail == userEmail);
+
+        if (history == null)
+        {
+            return NotFound();
+        }
+
+        _context.BookHistories.Remove(history);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // Delete all history for a user
+    [HttpDelete("~/api/history")]
+    public async Task<IActionResult> DeleteAllHistory([FromQuery] string userEmail)
+    {
+        if (string.IsNullOrWhiteSpace(userEmail))
+        {
+            return BadRequest("UserEmail is required");
+        }
+
+        var histories = await _context.BookHistories
+            .Where(h => h.UserEmail == userEmail)
+            .ToListAsync();
+
+        if (!histories.Any())
+        {
+            return NoContent();
+        }
+
+        _context.BookHistories.RemoveRange(histories);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
 

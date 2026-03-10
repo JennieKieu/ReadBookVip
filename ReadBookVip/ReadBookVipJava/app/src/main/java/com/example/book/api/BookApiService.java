@@ -64,6 +64,12 @@ public interface BookApiService {
     @GET("api/history")
     Call<List<BookText>> getHistoryBooks(@Query("userEmail") String userEmail);
 
+    @DELETE("api/books/{bookId}/history")
+    Call<Void> deleteHistory(@Path("bookId") long bookId, @Query("userEmail") String userEmail);
+
+    @DELETE("api/history")
+    Call<Void> deleteAllHistory(@Query("userEmail") String userEmail);
+
     // Favorites API
     @GET("api/books/favorites")
     Call<List<Long>> getFavorites(@Query("userEmail") String userEmail);

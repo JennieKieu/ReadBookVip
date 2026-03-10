@@ -5,9 +5,12 @@ import android.content.Intent;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.example.book.R;
 import com.example.book.adapter.BookAdapter;
 import com.example.book.api.ApiCallback;
+import com.example.book.api.ApiClient;
+import com.example.book.api.BookApiService;
 import com.example.book.constant.Constant;
 import com.example.book.constant.GlobalFunction;
 import com.example.book.databinding.ActivityHistoryBinding;
@@ -41,6 +44,8 @@ public class HistoryActivity extends BaseActivity {
     private void initToolbar() {
         mBinding.layoutToolbar.imgToolbar.setOnClickListener(view -> finish());
         mBinding.layoutToolbar.tvToolbarTitle.setText(getString(R.string.label_history));
+        // Không hiển thị nút xóa tất cả, chỉ xóa từng cuốn
+        mBinding.layoutToolbar.imgToolbarAction.setVisibility(android.view.View.GONE);
     }
 
     private void initUi() {
@@ -52,12 +57,7 @@ public class HistoryActivity extends BaseActivity {
             @Override
             public void onClickItemBook(Book book) {
                 if (book == null) return;
-                Intent intent = new Intent(HistoryActivity.this, ChapterReadActivity.class);
-                intent.putExtra(Constant.BOOK_ID, book.getId());
-                intent.putExtra(Constant.BOOK_TITLE, book.getTitle());
-                intent.putExtra(Constant.CHAPTER_INDEX, 0);
-                intent.putExtra(Constant.USE_HISTORY, true);
-                startActivity(intent);
+                showBookHistoryOptions(book);
             }
 
             @Override
@@ -109,6 +109,49 @@ public class HistoryActivity extends BaseActivity {
         } else {
             mListBook.clear();
         }
+    }
+
+    private void showBookHistoryOptions(Book book) {
+        new MaterialDialog.Builder(this)
+                .title(book.getTitle())
+                .content(getString(R.string.msg_history_item_options))
+                .positiveText(getString(R.string.action_read))
+                .onPositive((dialog, which) -> openBookFromHistory(book))
+                .negativeText(getString(R.string.action_delete))
+                .onNegative((dialog, which) -> deleteHistoryItem(book))
+                .cancelable(true)
+                .show();
+    }
+
+    private void openBookFromHistory(Book book) {
+        Intent intent = new Intent(HistoryActivity.this, ChapterReadActivity.class);
+        intent.putExtra(Constant.BOOK_ID, book.getId());
+        intent.putExtra(Constant.BOOK_TITLE, book.getTitle());
+        intent.putExtra(Constant.CHAPTER_INDEX, 0);
+        intent.putExtra(Constant.USE_HISTORY, true);
+        startActivity(intent);
+    }
+
+    private void deleteHistoryItem(Book book) {
+        String userEmail = DataStoreManager.getUser() != null ? DataStoreManager.getUser().getEmail() : null;
+        if (StringUtil.isEmpty(userEmail) || book == null) {
+            return;
+        }
+
+        BookApiService apiService = ApiClient.getInstance().getBookApiService();
+        apiService.deleteHistory(book.getId(), userEmail).enqueue(new retrofit2.Callback<Void>() {
+            @Override
+            public void onResponse(retrofit2.Call<Void> call, retrofit2.Response<Void> response) {
+                // Xóa khỏi list hiện tại
+                mListBook.remove(book);
+                if (mBookAdapter != null) mBookAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<Void> call, Throwable t) {
+                // Silent fail
+            }
+        });
     }
 
 }
